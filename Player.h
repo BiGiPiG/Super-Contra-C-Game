@@ -134,64 +134,53 @@ public:
         }
     }
 
-    void update(const std::vector<std::shared_ptr<MapObject>>& mapObjects, int currentFrame) {
-    // Проверяем, находится ли игрок на лестнице
-    if (isOnLadder(mapObjects)) {
-        isJumping = false; // Сбрасываем флаг прыжка при нахождении на лестнице
-        
-        // Автоматическое движение по лестнице
-        if (IsKeyDown(KEY_RIGHT)) { // Движение вправо по лестнице
-            position.y -= 1; // Смещение вверх по лестнице
-        } 
-        if (IsKeyDown(KEY_LEFT)) { // Движение влево по лестнице
-            position.y += 1; // Смещение вниз по лестнице
-        }
+    void update(const std::vector<std::shared_ptr<MapObject>> mapObjects, int currentFrame) {
 
-        hitBox.y = position.y; // Обновляем хитбокс
-
-        // Проверка на прыжок даже на лестнице
-        if (IsKeyPressed(KEY_SPACE)) { // Прыжок при нажатии пробела
-            jump(mapObjects);
-        }
-    } else {
-        // Если игрок не на лестнице, проверяем состояние прыжка
-        if (isJumping) {
-            velocity.y += gravity; // Применяем гравитацию к вертикальной скорости
-            position.y += velocity.y;   // Обновляем позицию хитбокса
-            hitBox.y = position.y;
-
-            // Проверяем, приземлился ли игрок на платформу или находится на лестнице
-            if (isOnGround(mapObjects)) {
-                isJumping = false;      // Если да, сбрасываем флаг прыжка
-                velocity.y = 0;          // Сбрасываем вертикальную скорость
-                
-                // Найти платформу, с которой произошла коллизия, и установить позицию Y
-                for (auto obj : mapObjects) {
-                    if (auto platform = dynamic_cast<Platform*>(obj.get())) {
-                        if (platform->isCollision(hitBox)) {
-                            position.y = platform->getY() - hitBox.height; // Устанавливаем Y до верхней границы платформы
-                            hitBox.y = position.y; // Обновляем хитбокс
-                            break; // Выходим из цикла после нахождения первой коллизии
-                        }
-                    }
-                }
-            } else if (isOnLadder(mapObjects)) { 
-                isJumping = false; 
-                position.y += 1;   // Устанавливаем позицию немного ниже, чтобы избежать "залипания"
-                hitBox.y = position.y;
+        if (isOnLadder(mapObjects) && !isOnGround(mapObjects)) {
+            isJumping = false; // Сбрасываем флаг прыжка при нахождении на лестнице
+            
+            // Автоматическое движение по лестнице
+            if (IsKeyDown(KEY_RIGHT)) { // Движение вправо
+                position.y -= 0.77; // Смещение вверх по лестнице
+            } 
+            if (IsKeyDown(KEY_LEFT)) { // Движение влево
+                position.y += 0.77; // Смещение вниз по лестнице
             }
+
+            hitBox.y = position.y; // Обновляем хитбокс
+            hitBox.x = position.x + 25; // Обновляем хитбокс с учетом смещения
+
+            if (IsKeyPressed(KEY_SPACE)) { // Прыжок при нажатии пробела
+                jump(mapObjects);
+            }
+            
         } else {
-            if (!isOnGround(mapObjects)) {
-                jump(mapObjects);          // Если не на земле и не в прыжке, начинаем падение
-            } else {
-                velocity.y = 0;               // Если на земле и не в прыжке
-            }
-        }
-    }
 
-    // Обновление текстуры в зависимости от состояния игрока
-    textureRec.x = (float)playerTexture.width / countFrameRun * currentFrame; 
-    textureRec.y = isJumping ? 128 : 0;   // Обновляем текстуру в зависимости от состояния прыжка
+            if (isJumping) {
+
+                velocity.y += gravity; // Применяем гравитацию к вертикальной скорости
+
+                position.y += velocity.y;   // Обновляем позицию hitbox
+                hitBox.y = position.y;
+                
+                if (isOnGround(mapObjects) || isOnLadder(mapObjects)) { // Проверяем, на земле ли игрок
+                    isJumping = false;      // Если да, сбрасываем флаг прыжка
+                    velocity.y = 0;          // Сбрасываем вертикальную скорость
+                    position.y = (int)(hitBox.y);    // Обновляем позицию Y до уровня платформы
+                }
+            } else {
+                if (!(isOnGround(mapObjects) || isOnLadder(mapObjects))) {
+                    jump(mapObjects);          // Если на земле, сбрасываем вертикальную скорость
+                } else {
+                    velocity.y = 0;               // Если не на земле и не в прыжке, начинаем падение
+                }
+            }
+
+        }
+        
+        textureRec.x = (float) playerTexture.width / countFrameRun * currentFrame; 
+        textureRec.y = isJumping ? 128 : 0;
+        
     }
 
     void draw() const {
