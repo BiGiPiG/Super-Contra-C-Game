@@ -11,15 +11,6 @@ public:
     Platform(int _x, int _y, const Rectangle &_rect) 
         : MapObject(_x, _y), rect(_rect) {} // Инициализация базового класса
 
-    // Геттеры для координат
-    int getX() const {
-        return this->getX();
-    }
-
-    int getY() const {
-        return this->getY();
-    }
-
     Rectangle getRectangle() const {
         return this->rect;
     }
