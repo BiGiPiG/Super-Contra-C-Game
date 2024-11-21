@@ -20,7 +20,8 @@ public:
             background = {}; // Инициализация текстуры по умолчанию в случае ошибки
         }
         mapObjects.push_back(std::make_shared<Platform>(0, 472, Rectangle{0, 472, 1970, 128}));
-        mapObjects.push_back(std::make_shared<Ladder>(450, 480, Vector2{450, 485}, Vector2{900, 485}, Vector2{900, 400}));
+        mapObjects.push_back(std::make_shared<Ladder>(450, 485, Vector2{450, 485}, Vector2{900, 485}, Vector2{900, 100}));
+        mapObjects.push_back(std::make_shared<Ladder>(1970, 128, Vector2{1970, 472}, Vector2{2586, 472}, Vector2{2586, 168}));
         
     }
 
