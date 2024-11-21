@@ -29,7 +29,7 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "SuperContra");
     Game game("resources/SuperContraMap.png");
-    Player bill(0, 100, "resources/Bill.png");
+    Player bill(0, 200, "resources/Bill.png");
     
     GameCamera gameCamera(screenWidth, screenHeight);
 
@@ -43,6 +43,7 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         frameDelayCounter++;
+        
         if (IsKeyPressed(KEY_SPACE)) {
             bill.jump(game.map.getPlatforms());
         }
@@ -56,13 +57,15 @@ int main(void)
         } else {
             bill.setMoving(false);
         }
-
-        bill.update(game.map.getPlatforms(), currentFrame);
+        
+        bill.updatePhysics(game.map.getPlatforms());
+        bill.updateAnimation(currentFrame);
+        
         /*
         if (camera.target.x < bill.getPosition().x + bill.getWidth() / 2) {
             camera.target.x = bill.getPosition().x + bill.getWidth() / 2; 
         }
-        */
+        */\
         gameCamera.setCameraTarget(bill.getPosition().x + bill.getWidth() / 2);
         //camera.target.y = bill.getPosition().y + bill.getHeight() / 2; 
         
@@ -74,7 +77,10 @@ int main(void)
                 currentFrame = (currentFrame + 1) % 4;
             } else if (bill.getMoving()) {
                 currentFrame = (currentFrame + 1) % 6;
-            } else {
+                
+                   
+                
+            } else {  
                 currentFrame = 0;
             }
             
@@ -87,7 +93,9 @@ int main(void)
         BeginMode2D(gameCamera.camera);
         game.drawMap();
         bill.draw();
-        DrawTriangleLines(Vector2{450, 480}, Vector2{900, 480}, Vector2{900, 400}, BLUE); 
+        //DrawTriangleLines(Vector2{450, 480}, Vector2{900, 480},  Vector2{900, 100}, BLUE); 
+        //DrawTriangleLines(Vector2{1970, 472}, Vector2{2586, 472}, Vector2{2586, 168}, BLUE);
+        //DrawRectangleLines(0, 472, 1970, 128, BLUE);
         EndMode2D(); 
         EndDrawing();
         //----------------------------------------------------------------------------------
