@@ -1,9 +1,13 @@
 #pragma once
 #include "raylib.h"
 #include "raymath.h"
+#include "Bullet.h"
 
 class Player {
 private:
+
+    std::vector<std::shared_ptr<Bullet>> bullets; // Вектор для хранения пуль
+
     int countFrameRun = 6;
     int countFrameJump = 4;
     int countFrame = 6;
@@ -12,19 +16,23 @@ private:
     float yVelocity = 0;
     float gravity = 0.5;
     float jumpHeight = 15;
+    float bulletSpeed = 20.0f; // Скорость пулиg
 
     Vector2 velocity = {5, 0};
 
     int x;
     int y;
+
     Rectangle hitBox;
     Rectangle textureRec;
+
     bool isJumping = false;
     bool isMoving = false;
     bool leftRun = false;
     bool rightRun = false;
     bool fromLadder = false;
     bool fromGravity = false;
+
     Texture2D playerTexture;
     Vector2 position;
 
@@ -112,8 +120,6 @@ public:
 
     void runLeft(const std::vector<std::shared_ptr<MapObject>> mapObjects) {
 
-        std::cout << "runl" << std::endl;
-
         leftRun = true;
         rightRun = false;
 
@@ -147,8 +153,6 @@ public:
     }
 
     void runRight(const std::vector<std::shared_ptr<MapObject>> mapObjects) {
-
-        std::cout << "runr" << std::endl;
 
         rightRun = true;
         leftRun = false;
@@ -188,7 +192,7 @@ public:
 
     void jump(const std::vector<std::shared_ptr<MapObject>> mapObjects) {
         if (!isJumping && (isOnGround(mapObjects) || isOnLadder(mapObjects))) { // Проверка, может ли игрок прыгнуть
-            std::cout << "jump" << std::endl;
+
             velocity.y = -jumpHeight; // Устанавливаем вертикальную скорость для прыжка
             isJumping = true;   // Устанавливаем флаг прыжка
         }
@@ -212,24 +216,13 @@ public:
     void updatePhysics(const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         
         if (isJumping) {
-            if (isMoving) {
-                std::cout << "runExtra" << std::endl;
-                /*
-                if (leftRun) {
-                    position.x -= velocity.x; // Move left
-                }
-                if (rightRun) {
-                    position.x += velocity.x; // Move right
-                }
-                */
-            }
-            std::cout << "jumpJump" << std::endl;
+
             velocity.y += gravity; // Применяем гравитацию к вертикальной скорости
             position.y += velocity.y; // Обновляем позицию по Y
             hitBox.y = position.y;
 
             if (isOnGround(mapObjects)) { // Проверка на приземление
-                std::cout << "notJumpJump" << std::endl;
+
                 position.y = isOnGround(mapObjects) - playerTexture.height / 2; // Сброс позиции на землю
                 isJumping = false; // Завершение прыжка
                 velocity.y = 0.0f; // Сброс скорости прыжка
@@ -267,8 +260,36 @@ public:
 
     void draw() const {
         DrawTextureRec(playerTexture, textureRec, position, WHITE); // Отрисовка текстуры игрока на экране
-        DrawRectangleRec(hitBox, GREEN);
-        
-        DrawPixel(static_cast<int>(hitBox.x + hitBox.width - 10), static_cast<int>(hitBox.y + hitBox.height - 30), RED);
+        //DrawRectangleRec(hitBox, GREEN);
+        drawBullets();
     }
+
+    void shoot() {
+        
+        float bulletDirectionX = rightRun ? bulletSpeed : -bulletSpeed; // Направление в зависимости от движения игрока
+        bullets.push_back(std::make_shared<Bullet>(position.x + (rightRun ? getWidth() + 15 : 15), position.y + getHeight() / 3 - 5, bulletDirectionX, 0));
+    
+    }
+
+    void updateBullets() {
+        for (auto it = bullets.begin(); it != bullets.end();) {
+            (*it)->update();
+            if (!(*it)->isActive) {
+                it = bullets.erase(it); // Удаляем неактивные пули
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    void drawBullets() const {
+        for (const auto& bullet : bullets) {
+            bullet->draw();
+        }
+    }
+
+    void update(const std::vector<std::shared_ptr<MapObject>>& mapObjects) {
+        updatePhysics(mapObjects); // Обновляем физику (включая прыжки)
+        updateBullets(); // Обновляем состояние пуль
+    }   
 };

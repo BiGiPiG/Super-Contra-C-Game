@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "Map.h"
 #include "Player.h"
+#include "Bullet.h"
 #include "GameCamera.h"
 #include <iostream>
 #include <map>
@@ -23,7 +24,7 @@ int main(void)
     const int screenWidth = 900;
     const int screenHeight = 600;
 
-    int frameDelay = 5; // Задержка между кадрами
+    int frameDelay = 7; // Задержка между кадрами
     int frameDelayCounter = 0;
     int currentFrame = 0;
 
@@ -47,6 +48,10 @@ int main(void)
         if (IsKeyPressed(KEY_SPACE)) {
             bill.jump(game.map.getPlatforms());
         }
+
+        if (IsKeyPressed(KEY_F)) { // Если нажата клавиша A для прыжка
+            bill.shoot(); // Вызываем метод прыжка у игрока
+        }
         
         if (IsKeyDown(KEY_RIGHT)) {
             bill.runRight(game.map.getPlatforms());
@@ -58,7 +63,7 @@ int main(void)
             bill.setMoving(false);
         }
         
-        bill.updatePhysics(game.map.getPlatforms());
+        bill.update(game.map.getPlatforms());
         bill.updateAnimation(currentFrame);
         
         /*
@@ -76,10 +81,7 @@ int main(void)
             if (bill.getJumping()) {
                 currentFrame = (currentFrame + 1) % 4;
             } else if (bill.getMoving()) {
-                currentFrame = (currentFrame + 1) % 6;
-                
-                   
-                
+                currentFrame = (currentFrame + 1) % 6;   
             } else {  
                 currentFrame = 0;
             }
