@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "Bullet.h"
 #include "GameCamera.h"
+#include "Alien.h"
 #include <iostream>
 #include <map>
 
@@ -16,6 +17,46 @@ public:
         map.mapDraw();
     }
 };
+
+void updateAliens(std::vector<std::shared_ptr<Alien>>& aliens, Player& bill, 
+                  const std::vector<std::shared_ptr<MapObject>>& mapObjects) {
+
+    if (!aliens.empty()) {
+
+        for (const auto &alien : aliens) {
+            alien->runRight(mapObjects);
+            alien->updatePhysics(mapObjects);
+            for (const auto &bullet : bill.getBullets()) {
+                alien->checkAlien(mapObjects, bill.getPosition(), bullet->hitBox);
+            }
+            alien->updateAnimation();
+        }
+
+    }
+}
+
+void updateAliensFrames(std::vector<std::shared_ptr<Alien>>& aliens) {
+
+    if (!aliens.empty()) {
+
+        for (const auto &alien : aliens) {
+            alien->updateCurrentRunFrame();
+            alien->setChangeFrame();
+        }
+        
+    }
+}
+
+void drawAliens(std::vector<std::shared_ptr<Alien>>& aliens) {
+
+    if (!aliens.empty()) {
+
+        for (const auto &alien : aliens) {
+            alien->draw();
+        }
+
+    }
+}
 
 int main(void)
 {
@@ -31,12 +72,15 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "SuperContra");
     Game game("resources/SuperContraMap.png");
     Player bill(0, 200, "resources/Bill.png");
+    std::vector<std::shared_ptr<Alien>> aliens;
     
     GameCamera gameCamera(screenWidth, screenHeight);
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
-  
+    
+    int spawnDelay = 120; // Задержка между спавном инопланетян (в кадрах)
+    int spawnCounter = 0; // Счетчик кадров
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -44,6 +88,14 @@ int main(void)
         // Update
         //----------------------------------------------------------------------------------
         frameDelayCounter++;
+
+        spawnCounter++;
+        if (spawnCounter >= spawnDelay) {
+            aliens.push_back(std::make_shared<Alien>(bill.getPosition().x - 500, bill.getPosition().y, "resources/AlienRunner.png"));
+            spawnCounter = 0; // Сброс счетчика
+        }
+
+        bill.isPlayerAlive(aliens);
         
         if (IsKeyPressed(KEY_SPACE)) {
             bill.jump(game.map.getPlatforms());
@@ -51,33 +103,67 @@ int main(void)
 
         if (IsKeyPressed(KEY_F)) { // Если нажата клавиша A для прыжка
             bill.shoot(); // Вызываем метод прыжка у игрока
+            bill.setShooting(true);
+            bill.setChangeStatShoot(true);
+            //bill.setShooting(false);
+        } 
+
+        if (IsKeyDown(KEY_UP)) {
+            bill.setLookUp(true);
+        } else {
+            bill.setLookUp(false);
+        }
+
+        if (IsKeyDown(KEY_DOWN)) {
+            bill.setLookDown(true);
+        } else {
+            bill.setLookDown(false);
         }
         
         if (IsKeyDown(KEY_RIGHT)) {
             bill.runRight(game.map.getPlatforms());
             bill.setMoving(true);
-        } else if (IsKeyDown(KEY_LEFT)) {
+        } else if (IsKeyDown(KEY_LEFT)) {\
+
             bill.runLeft(game.map.getPlatforms());
             bill.setMoving(true);
         } else {
             bill.setMoving(false);
         }
         
+        /*
+        if (aliens.size()) {
+            aliens[0]->runRight(game.map.getPlatforms());
+            aliens[0]->updatePhysics(game.map.getPlatforms());
+            for (const auto &bullet : bill.getBullets()) {
+                aliens[0]->checkAlien(game.map.getPlatforms(), bill.getPosition(), bullet->hitBox);
+            }
+            aliens[0]->updateAnimation();
+        }
+        */
+        updateAliens(aliens, bill, game.map.getPlatforms());
+
+        
+        
+        for (auto it = aliens.begin(); it != aliens.end();) {
+            if (!(*it)->isAlive()) {
+                it = aliens.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
         bill.update(game.map.getPlatforms());
         bill.updateAnimation(currentFrame);
         
-        /*
-        if (camera.target.x < bill.getPosition().x + bill.getWidth() / 2) {
-            camera.target.x = bill.getPosition().x + bill.getWidth() / 2; 
-        }
-        */\
-        gameCamera.setCameraTarget(bill.getPosition().x + bill.getWidth() / 2);
-        //camera.target.y = bill.getPosition().y + bill.getHeight() / 2; 
-        
+
+        gameCamera.setCameraTarget(bill.getPosition().x + bill.getWidth() / 2, bill.getPosition().y + bill.getHeight() / 2 - 50);
         if (frameDelayCounter >= frameDelay) {
+            bill.setChangeFrame(true);
+
+            updateAliensFrames(aliens);
             frameDelayCounter = 0;
             
-            //bill.update(game.map.getPlatforms(), currentFrame);
             if (bill.getJumping()) {
                 currentFrame = (currentFrame + 1) % 4;
             } else if (bill.getMoving()) {
@@ -95,9 +181,10 @@ int main(void)
         BeginMode2D(gameCamera.camera);
         game.drawMap();
         bill.draw();
-        //DrawTriangleLines(Vector2{450, 480}, Vector2{900, 480},  Vector2{900, 100}, BLUE); 
+        drawAliens(aliens);
+        //DrawTriangleLines(Vector2{3280, 400}, Vector2{4315, 400}, Vector2{4315, -140}, BLUE); 
         //DrawTriangleLines(Vector2{1970, 472}, Vector2{2586, 472}, Vector2{2586, 168}, BLUE);
-        //DrawRectangleLines(0, 472, 1970, 128, BLUE);
+        //DrawRectangleLines(4315, -230, 1000, 200, BLUE);
         EndMode2D(); 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -108,5 +195,6 @@ int main(void)
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
-    return 0;
+      return 0;
 }
+
