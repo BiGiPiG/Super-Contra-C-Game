@@ -12,13 +12,7 @@ public:
     }
 
     void setCameraTarget(int x, int y) {
-        if (camera.target.x < x) {
-            camera.target.x = x;
-        }
-        if (y <= 286) {
-            camera.target.y = y;
-        }
-        
-        
+        camera.target.x = x;
+        camera.target.y = y;        
     }
 };

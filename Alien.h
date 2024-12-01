@@ -15,6 +15,7 @@ private:
     Texture2D alienTexture; // Текстура инопланетянина
     Vector2 velocity = {6.0f, 0}; // Объединенная скорость (x, y)
     float gravity = 0.5f; // Гравитация
+    float yShift = 38.0f;
 
     bool changeFrame = false;
     bool isHidden = false;
@@ -24,8 +25,8 @@ private:
 public:
     Alien(float startX, float startY, const char* texturePath) {
         position = { startX, startY };
-        hitBox = { 25.0f + startX, startY, 50.0f, 128.0f }; // Размер хитбокса
-        textureRec = { 0, 0, 101.0f, 128.0f }; 
+        hitBox = { 25.0f + startX, yShift + startY, 50.0f, 100.0f }; // Размер хитбокса
+        textureRec = { 0, 0, 100.0f, 138.0f }; 
         alienTexture = LoadTexture(texturePath); // Загрузка текстуры инопланетянина
     }
 
@@ -51,6 +52,7 @@ public:
 
     void draw() {
         DrawTextureRec(alienTexture, textureRec, position, WHITE);
+        //DrawRectangleRec(hitBox, GREEN);
     }
 
     int isOnGround(std::vector<std::shared_ptr<MapObject>> mapObjects) {
@@ -90,22 +92,22 @@ public:
             } else {
                 isJumping = true;
             }
-            hitBox.y = position.y;
+            hitBox.y = yShift + position.y;
            
         } else if (isOnLadder(mapObjects)) {
 
             position.x -= velocity.x;
             hitBox.x = 25 + position.x;
             position.y += 2.6; // Смещение по Y при нахождении на лестнице
-            hitBox.y = position.y; // Обновляем хитбокс
+            hitBox.y = yShift + position.y; // Обновляем хитбокс
         } else if (isJumping) {
             position.x -= velocity.x;
             hitBox.x = 25 + position.x;
             position.y += gravity;
-            hitBox.y = position.y;
+            hitBox.y = yShift + position.y;
         } else {
             position.y += gravity;
-            hitBox.y = position.y;
+            hitBox.y = yShift + position.y;
         }
 
         if (textureRec.width > 0) {
@@ -124,26 +126,26 @@ public:
                 isJumping = true;
             }
         
-            hitBox.y = position.y;
+            hitBox.y = yShift + position.y;
 
         } else if (isOnLadder(mapObjects)) {
 
             position.x += velocity.x;
             hitBox.x = 25 + position.x;
             position.y -= 2.6; // Смещение по Y при нахождении на лестнице
-            hitBox.y = position.y; // Обновляем хитбокс
+            hitBox.y = yShift + position.y; // Обновляем хитбокс
 
         } else if (isJumping) {
 
             position.x += velocity.x;
             hitBox.x = 25 + position.x;
             position.y += gravity;
-            hitBox.y = position.y;
+            hitBox.y = yShift + position.y;
 
         } else {
 
             position.y += gravity;
-            hitBox.y = position.y;
+            hitBox.y = yShift + position.y;
 
         }
 
@@ -165,7 +167,7 @@ public:
 
             velocity.y += gravity; // Применяем гравитацию к вертикальной скорости
             position.y += velocity.y; // Обновляем позицию по Y
-            hitBox.y = position.y;
+            hitBox.y = yShift + position.y;
 
             if (isOnGround(mapObjects)) { // Проверка на приземление
 
@@ -173,13 +175,13 @@ public:
                 position.y = isOnGround(mapObjects) - alienTexture.height / countAnimations; // Сброс позиции на землю
                 isJumping = false; // Завершение прыжка
                 velocity.y = 0.0f; // Сброс скорости прыжка
-                hitBox.y = position.y;
+                hitBox.y = yShift + position.y;
 
             } else if (isOnLadder(mapObjects)) {
 
                 // Если игрок на лестнице, корректируем его позицию
                 position.y -= 2.5; // Поднимаем игрока немного выше, чтобы он не проваливался сквозь лестницу
-                hitBox.y = position.y; // Обновляем хитбокс
+                hitBox.y = yShift + position.y; // Обновляем хитбокс
                 isJumping = false; 
                 velocity.y = 0.0f;
 
@@ -189,7 +191,7 @@ public:
             if (!isOnLadder(mapObjects)) {
                 velocity.y += gravity; // Если не на земле, применяем гравитацию
                 position.y += velocity.y;
-                hitBox.y = position.y;
+                hitBox.y = yShift + position.y;
             }
 
             if (isOnGround(mapObjects)) { 
@@ -215,7 +217,7 @@ public:
     void updateAnimation() {
         if (isHidden) {
             if (changeFrame) {
-                currentDieFrame = (currentDieFrame + 1) % 5;
+                currentDieFrame = (currentDieFrame + 1) % 6;
                 if (currentDieFrame) {
                     textureRec.x = (float)alienTexture.width / countFrameRun * currentDieFrame;
                     textureRec.y = (float)alienTexture.height / countAnimations;

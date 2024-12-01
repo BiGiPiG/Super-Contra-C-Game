@@ -57,7 +57,6 @@ private:
                     isAlive = false; // Устанавливаем флаг мертвого состояния после достижения определенной высоты
                 }
                 
-                std::cout << "2" << std::endl;
                 textureRec.x = granateThrower.width / deathFrames * currentFrame;
 
             }
@@ -65,7 +64,6 @@ private:
             position.y -= liftSpeed; // Поднимаем метателя вверх при смерти
             
             if (liftTimer >= liftTime) { 
-                std::cout << "1" << std::endl;
                 isLifting = false;
                 position.x += 15.0f;
                 position.y += 70.0f;
@@ -199,7 +197,6 @@ public:
                 }
             }
         }
-        
     }
 
 };

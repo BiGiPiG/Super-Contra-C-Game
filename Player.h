@@ -3,28 +3,42 @@
 #include "raymath.h"
 #include "Bullet.h"
 #include "Alien.h"
+#include "LedderBullet.hpp"
 
 class Player {
 private:
 
     std::vector<std::shared_ptr<Bullet>> bullets; // Вектор для хранения пуль
 
-    int countFrameRun = 6;
-    int countFrameJump = 4;
-    int countFrame = 6;
-    int countAnimations = 7;
+    int countFrameRun = 7;
+    
+    int countFrame = 7;  
     int currentShootFrame = 0;
     int currentRunUpFrame = 0;
     int currentRunDownFrame = 0;
     int currentDieFrame = 0;
     int countLifes = 3;
+    int deathFrames = 4;
 
+
+    int currentFrame = 0;
+    int countFrames = 7;
+    int countAnimations = 7;
+    int countRunFrames = 6;
+    int countFrameJump = 4;
+    int countStatShoot = 2;
+
+    enum AnimationState { IDLE, RUNNING, JUMPING, DYING };
+    AnimationState currentAnimationState = IDLE; // Текущее состояние анимации
+    AnimationState previousAnimationState = IDLE; // Предыдущее состояние анимации
 
     float xVelocity = 5;
     float yVelocity = 0;
     float gravity = 0.5;
     float jumpHeight = 15;
     float bulletSpeed = 20.0f; // Скорость пулиg
+    float frameTimer = 0.0f;
+    float frameSpeed = 0.1f;
 
     Vector2 velocity = {5, 0};
 
@@ -47,19 +61,81 @@ private:
     Texture2D playerTexture;
     Vector2 position;
 
+    void updateDeathAnimation() {
 
+        if (frameTimer >= frameSpeed) {
+            currentDieFrame++;
+            frameTimer = 0.0f;
+
+            if (currentDieFrame < deathFrames) {
+                position.x -= 10; // Сдвиг позиции
+                position.y -= 10; // Сдвиг позиции
+                textureRec.x = (float)playerTexture.width / countFrameRun * currentDieFrame;
+                textureRec.y = (float)playerTexture.height / countAnimations * 5; // Кадр смерти
+            } else {
+                isAlive = false; // Устанавливаем флаг мертвого состояния
+                isDying = false; // Завершаем анимацию смерти
+                currentDieFrame = deathFrames - 1; // Останавливаемся на последнем кадре
+            }
+        }
+    }
+
+    void updateJumpAnimation() {
+        currentFrame %= countFrameJump; // Обновляем кадр
+        textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
+        textureRec.y = (float)playerTexture.height / countAnimations * 2; // Кадр прыжка
+    }
+
+    void updateMovementAnimation() {
+
+        currentFrame %= countRunFrames; // Обновляем кадр
+
+        if (lookUp) {
+            textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
+            textureRec.y = (float)playerTexture.height / countAnimations * 3; // Кадр runUp
+        } else if (lookDown) {
+            textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
+            textureRec.y = (float)playerTexture.height / countAnimations * 4; // Кадр runDown
+        } else {
+            if (isShooting) {
+                textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
+                textureRec.y = (float)playerTexture.height / countAnimations; // Кадр runShoot
+            } else {
+                textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
+                textureRec.y = 0; // Кадр run
+            }
+        }    
+    }
+
+    void updateIdleAnimation() {
+        if (lookUp) {
+            textureRec.x = (float)playerTexture.width / countFrames * 2; // Кадр ожидания
+            textureRec.y = (float)playerTexture.height / countAnimations * 6;
+        } else if (lookDown) {
+            textureRec.x = (float)playerTexture.width / countFrames * 4; // Кадр ожидания
+            textureRec.y = (float)playerTexture.height / countAnimations * 6;
+        } else {
+            textureRec.x = 0; // Кадр ожидания
+            textureRec.y = (float)playerTexture.height / countAnimations * 6;
+        }
+    }
 
 public:
+
     Player(float startX, float startY, const char* texturePath) {
         position.x = startX;
         position.y = startY;
-        hitBox = { 25.0f + startX, startY, 50.0f, 128.0f }; 
-        textureRec = { 0, 0, 101.0f, 128.0f };
+        hitBox = { 25.0f + startX, 38.0f + startY, 50.0f, 100.0f }; 
+        textureRec = { 0, 0, 100.0f, 138.0f };
         playerTexture = LoadTexture(texturePath); // Загрузка текстуры игрока
     }
 
     std::vector<std::shared_ptr<Bullet>> getBullets() {
         return bullets;
+    }
+
+    void addCurFrame() {
+        currentFrame++;
     }
 
     void setChangeStatShoot(bool flag) {
@@ -153,7 +229,6 @@ public:
     }
 
     void runLeft(const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
-
         leftRun = true;
         rightRun = false;
 
@@ -168,22 +243,22 @@ public:
                 isJumping = true;
             }
             
-            hitBox.y = position.y;
+            hitBox.y = 38.0f + position.y;
            
         } else if (isOnLadder(mapObjects)) {
 
             position.x -= velocity.x;
             hitBox.x = 25 + position.x;
             position.y += 2.6; // Смещение по Y при нахождении на лестнице
-            hitBox.y = position.y; // Обновляем хитбокс
+            hitBox.y = 38.0f + position.y; // Обновляем хитбокс
         } else if (isJumping) {
             position.x -= velocity.x;
             hitBox.x = 25 + position.x;
             position.y += gravity;
-            hitBox.y = position.y;
+            hitBox.y = 38.0f + position.y;
         } else {
             position.y += gravity;
-            hitBox.y = position.y;
+            hitBox.y = 38.0f + position.y;
         }
 
         if (textureRec.width > 0) {
@@ -206,26 +281,26 @@ public:
                 isJumping = true;
             }
         
-            hitBox.y = position.y;
+            hitBox.y = 38.0f + position.y;
 
         } else if (isOnLadder(mapObjects)) {
 
             position.x += velocity.x;
             hitBox.x = 25 + position.x;
             position.y -= 2.6; // Смещение по Y при нахождении на лестнице
-            hitBox.y = position.y; // Обновляем хитбокс
+            hitBox.y = 38.0f + position.y; // Обновляем хитбокс
 
         } else if (isJumping) {
 
             position.x += velocity.x;
             hitBox.x = 25 + position.x;
             position.y += gravity;
-            hitBox.y = position.y;
+            hitBox.y = 38.0f + position.y;
 
         } else {
 
             position.y += gravity;
-            hitBox.y = position.y;
+            hitBox.y = 38.0f + position.y;
 
         }
 
@@ -241,78 +316,148 @@ public:
         }
     }
 
-    void updateAnimation(int &currentFrame) {
+    void updateAnimation(float deltaTime) {
+        frameTimer += deltaTime; // Увеличиваем таймер
+
+        // Проверяем состояние смерти
         if (isDying) {
-            if (changeFrame) {
-                currentDieFrame = (currentDieFrame + 1) % 4;
-                if (currentDieFrame) {
-                    position.x -= 10;
-                    position.y -= 10;
-                    textureRec.x = (float)playerTexture.width / countFrameRun * currentDieFrame;
-                    textureRec.y = (float)playerTexture.height / countAnimations * 5;
-                    changeFrame = false;
-                } else {
-                    isAlive = false;
-                    isDying = false;
-                    changeFrame = false;
+            if (currentAnimationState != DYING) {
+                previousAnimationState = currentAnimationState; // Обновляем предыдущее состояние
+                currentAnimationState = DYING; // Обновляем текущее состояние
+                currentDieFrame = 0; // Сбросить к началу анимации смерти
+            }
+            updateDeathAnimation();
+            return;
+        }
+
+        // Проверяем состояние прыжка
+        if (isJumping) {
+            if (currentAnimationState != JUMPING) {
+                previousAnimationState = currentAnimationState; // Обновляем предыдущее состояние
+                currentAnimationState = JUMPING; // Обновляем текущее состояние
+                currentFrame = 0; // Сбросить к началу прыжка
+            }
+            updateJumpAnimation();
+            return;
+        }
+
+        // Проверяем состояние движения
+        if (isMoving) {
+            if (lookUp) {
+                if (currentAnimationState != RUNNING) {
+                    previousAnimationState = currentAnimationState; // Обновляем предыдущее состояние
+                    currentAnimationState = RUNNING; // Обновляем текущее состояние
+                    currentRunUpFrame = 0; // Сбросить к началу анимации движения вверх
                 }
+                updateMovementAnimation();
+            } else if (lookDown) {
+                if (currentAnimationState != RUNNING) {
+                    previousAnimationState = currentAnimationState; // Обновляем предыдущее состояние
+                    currentAnimationState = RUNNING; // Обновляем текущее состояние
+                    currentRunDownFrame = 0; // Сбросить к началу анимации движения вниз
+                }
+                updateMovementAnimation();
+            } else {
+                if (currentAnimationState != RUNNING) {
+                    previousAnimationState = currentAnimationState; // Обновляем предыдущее состояние
+                    currentAnimationState = RUNNING; // Обновляем текущее состояние
+                    currentFrame = 0; // Сбросить к началу бега
+                }
+                updateMovementAnimation();
             }
-        } else if (isJumping) {
-            textureRec.x = (float)playerTexture.width / countFrameRun * currentFrame;
-            textureRec.y = (float)playerTexture.height / countAnimations * 2; // Кадр прыжка
-        } else if (lookUp && isMoving) {
-            textureRec.y = (float)playerTexture.height / countAnimations * 3; // Кадр RunUp
-            textureRec.x = (float)playerTexture.width / countFrameRun * currentRunUpFrame;
-
-            // Обновляем кадр анимации стрельбы
-            if (changeFrame) {
-                currentRunUpFrame++;
-                changeFrame = false;
-            }
-
-            if (currentShootFrame >= countFrameRun) { // Если достигли конца анимации
-                //isShooting = false; // Завершаем стрельбу
-                currentShootFrame = 0; // Сбрасываем кадры стрельбы
-            }
-        } else if (lookDown && isMoving) {
-            std::cout << "RunDown" << std::endl;
-            textureRec.y = (float)playerTexture.height / countAnimations * 4; // Кадр RunUp
-            textureRec.x = (float)playerTexture.width / countFrameRun * currentRunDownFrame;
-
-            // Обновляем кадр анимации стрельбы
-            if (changeFrame) {
-                currentRunDownFrame++;
-                changeFrame = false;
-            }
-
-            if (currentShootFrame >= countFrameRun) { // Если достигли конца анимации
-                //isShooting = false; // Завершаем стрельбу
-                currentShootFrame = 0; // Сбрасываем кадры стрельбы
-            }
-        } else if (isShooting && isMoving) {
-            //std::cout << "shooting" << std::endl;
-            textureRec.y = (float)playerTexture.height / countAnimations; // Кадр стрельбы
-            textureRec.x = (float)playerTexture.width / countFrameRun * currentShootFrame;
-
-            // Обновляем кадр анимации стрельбы
-            if (changeFrame) {
-                currentShootFrame = (currentShootFrame + 1) % countFrameRun;
-                changeFrame = false;
-            }
-        } else if (isMoving) {
-            textureRec.x = (float)playerTexture.width / countFrameRun * currentFrame;
-            textureRec.y = isShooting ? (float)playerTexture.height / countAnimations : 0; // Кадр стрельбы или бега
-        } else if (isShooting) {
-        textureRec.y = (float)playerTexture.height / countAnimations * 6; // Кадр стрельбы
-        textureRec.x = (float)playerTexture.width / countFrameRun;
         } else {
-        isShooting = false;
-        currentFrame = 0; 
-        textureRec.x = 0; 
-        textureRec.y = 0; 
+            if (currentAnimationState != IDLE) {
+                previousAnimationState = currentAnimationState; // Обновляем предыдущее состояние
+                currentAnimationState = IDLE; // Обновляем текущее состояние
+                currentFrame = 0; // Сбросить к началу состояния без движения
+            }
+            updateIdleAnimation(); // Обновление анимации без движения
         }
     }
 
+/*
+    void updateAnimation() {
+    // Обновление анимации смерти
+    currentFrame++;
+    if (isDying) {
+        frameTimer += GetFrameTime(); // Увеличиваем таймер
+
+        if (frameTimer >= frameSpeed) { 
+            currentDieFrame++;
+            frameTimer = 0.0f;
+
+            if (currentDieFrame < deathFrames) {
+                position.x -= 10; // Сдвиг позиции
+                position.y -= 10; // Сдвиг позиции
+                textureRec.x = (float)playerTexture.width / countFrameRun * currentDieFrame;
+                textureRec.y = (float)playerTexture.height / countAnimations * 5; // Кадр смерти
+            } else {
+                isAlive = false; // Устанавливаем флаг мертвого состояния
+                isDying = false; // Завершаем анимацию смерти
+                currentDieFrame = deathFrames - 1; // Останавливаемся на последнем кадре
+            }
+        }
+        return; // Прекращаем выполнение функции, если метатель мертв
+    }
+
+    // Обновление анимации прыжка
+    if (isJumping) {
+        currentFrame %= countFrameJump;
+        textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
+        textureRec.y = (float)playerTexture.height / countAnimations * 2; // Кадр прыжка
+        return;
+    }
+
+    if (isMoving) {
+        if (lookDown) {
+            currentFrame %= countRunFrames;
+            textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
+            textureRec.y = (float)playerTexture.height / countAnimations * 4; // Кадр runDown
+        } else if (lookUp) {
+            currentFrame %= countRunFrames;
+            textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
+            textureRec.y = (float)playerTexture.height / countAnimations * 3; // Кадр runUp
+        } else {
+            if (isShooting) {
+                currentFrame %= countRunFrames;
+                textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
+                textureRec.y = (float)playerTexture.height / countAnimations; // Кадр runShoot
+            } else {
+                currentFrame %= countRunFrames;
+                textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
+                textureRec.y = 0; // Кадр run
+            }
+        }
+    } else if (lookDown) {
+        if (isShooting) {
+            currentFrame %= countStatShoot;
+            textureRec.x = 4 + (float)playerTexture.width / countFrames * currentFrame; //кадр StatDownShoot
+            textureRec.y = (float)playerTexture.height / countAnimations * 6;
+        } else {
+            textureRec.x = (float)playerTexture.width / countFrames * 4;
+            textureRec.y = (float)playerTexture.height / countAnimations * 6; // Кадр down   
+        }
+    } else if (lookUp) {
+        if (isShooting) {
+            currentFrame %= countStatShoot;
+            textureRec.x = 2 + (float)playerTexture.width / countFrames * currentFrame; //кадр StatUpShoot
+            textureRec.y = (float)playerTexture.height / countAnimations * 6;
+        } else {
+            textureRec.x = (float)playerTexture.width / countFrames * 2;
+            textureRec.y = (float)playerTexture.height / countAnimations * 6; // Кадр up
+        }
+    } else {
+        if (isShooting) {
+            currentFrame %= countStatShoot;
+            textureRec.x = (float)playerTexture.width / countFrames * currentFrame; //кадр StatShoot
+            textureRec.y = (float)playerTexture.height / countAnimations * 6;
+        } else {
+            textureRec.x = 0;
+            textureRec.y = (float)playerTexture.height / countAnimations * 6; // Кадр up
+        }
+    }
+}   
+*/
     void updatePhysics(const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
 
         //std::cout << velocity.y << " " << position.y << std::endl;
@@ -321,7 +466,7 @@ public:
 
             velocity.y += gravity; // Применяем гравитацию к вертикальной скорости
             position.y += velocity.y; // Обновляем позицию по Y
-            hitBox.y = position.y;
+            hitBox.y = 38.0f + position.y;
 
             if (isOnGround(mapObjects)) { // Проверка на приземление
 
@@ -329,11 +474,11 @@ public:
                 isJumping = false; // Завершение прыжка
                 isShooting = false; // Завершение стрельбы
                 velocity.y = 0.0f; // Сброс скорости прыжка
-                hitBox.y = position.y;
+                hitBox.y = 38.0f + position.y;
             } else if (isOnLadder(mapObjects)) {
                 // Если игрок на лестнице, корректируем его позицию
                 position.y -= 2.5; // Поднимаем игрока немного выше, чтобы он не проваливался сквозь лестницу
-                hitBox.y = position.y; // Обновляем хитбокс
+                hitBox.y = 38.0f + position.y; // Обновляем хитбокс
                 isJumping = false; 
                 velocity.y = 0.0f;
             }
@@ -343,7 +488,7 @@ public:
                 velocity.y += gravity; // Если не на земле, применяем гравитацию
                 position.y += velocity.y;
                 //std::cout << velocity.y << " " << position.y << std::endl;
-                hitBox.y = position.y;
+                hitBox.y = 38.0f + position.y;
             }
 
             if (isOnGround(mapObjects)) { 
@@ -371,9 +516,45 @@ public:
     }
 
     void shoot() {
-        float bulletDirectionX = rightRun ? bulletSpeed : -bulletSpeed; // Направление в зависимости от движения игрока
-        float bulletDirectionY = lookUp ? -bulletSpeed : lookDown ? bulletSpeed : 0;
-        bullets.push_back(std::make_shared<Bullet>(position.x + (rightRun ? getWidth() + 15 : 15), position.y + getHeight() / countAnimations - 5, bulletDirectionX, bulletDirectionY));
+        float bulletDirectionX;
+        float bulletDirectionY;
+        float bulletPosX;
+        float bulletPosY;
+        if (isMoving) {
+            bulletDirectionX = rightRun ? bulletSpeed : -bulletSpeed;
+            if (lookUp) {
+                bulletDirectionY = -bulletSpeed;
+                bulletPosX = rightRun ? position.x + 50 : position.x + 20;
+                bulletPosY = position.y + 38;
+            } else if (lookDown) {
+                bulletDirectionY = bulletSpeed;
+                bulletPosX = rightRun ? position.x + 50 : position.x + 20;
+                bulletPosY = position.y + 58;
+            } else {
+                bulletDirectionY = 0;
+                bulletPosX = rightRun ? position.x + 60 : position.x + 10;
+                bulletPosY = position.y + 55;
+            }
+        } else {
+            if (lookUp) {
+                bulletDirectionX = 0;
+                bulletDirectionY = -bulletSpeed;
+                bulletPosX = rightRun ? position.x + 40 : position.x + 30;
+                bulletPosY = position.y;
+            } else if (lookDown) {
+                bulletDirectionX = rightRun ? bulletSpeed : -bulletSpeed;
+                bulletDirectionY = 0;
+                bulletPosX = rightRun ? position.x + 75 : position.x;
+                bulletPosY = position.y + 95;
+            } else {
+                bulletDirectionX = rightRun ? bulletSpeed : -bulletSpeed;
+                bulletDirectionY = 0;
+                bulletPosX = rightRun ? position.x + 60 : position.x + 10;
+                bulletPosY = position.y + 55;
+            }
+        }
+        //float bulletDirectionY = lookUp ? -bulletSpeed : lookDown ? bulletSpeed : 0;
+        bullets.push_back(std::make_shared<Bullet>(bulletPosX, bulletPosY, bulletDirectionX, bulletDirectionY));
     
     }
 
@@ -402,12 +583,24 @@ public:
         updateBullets(mapObjects); // Обновляем состояние пуль
     }   
 
-    void isPlayerAlive(std::vector<std::shared_ptr<Alien>>& aliens) {
+    void isPlayerAlive(std::vector<std::shared_ptr<Alien>>& aliens, 
+                        std::vector<std::shared_ptr<LedderBullet>> ledderBullets) {
         
         if (!aliens.empty()) {
             for (const auto &alien : aliens) {
                 if (CheckCollisionRecs(hitBox, alien->getHitBox())) {
                     isDying = true;
+                    return;
+                }
+            }
+        }
+
+        if (!ledderBullets.empty()) {
+            for (const auto &bullet : ledderBullets) {
+                if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
+                    isDying = true;
+                    countLifes -= 1;
+                    return;
                 }
             }
         }
