@@ -14,19 +14,11 @@ private:
 
 public:
     Map(const std::string& path) {
-        std::cout << "Loading map from: " << path << std::endl;
-        background = LoadTexture(path.c_str());
-
-        // Check if the texture loaded successfully
-        if (background.id == 0) {
+        this->background = LoadTexture(path.c_str());
+        if (background.id == 0) { // Проверка на успешную загрузку текстуры
             std::cerr << "Failed to load texture from: " << path << std::endl;
-            // Handle error appropriately (e.g., set a default texture or exit)
-            return; // Prevent further execution if texture loading fails
-        } else {
-            std::cout << "Texture loaded successfully." << std::endl;
+            background = {}; // Инициализация текстуры по умолчанию в случае ошибки
         }
-
-        // Initialize map objects
         mapObjects.push_back(std::make_shared<Platform>(0, 540, Rectangle{0, 540, 1720, 100}));
         mapObjects.push_back(std::make_shared<Platform>(2200, 505, Rectangle{1720, 610, 230, 100}));
         mapObjects.push_back(std::make_shared<Platform>(2500, 390, Rectangle{1950, 540, 645, 100}));
@@ -38,10 +30,11 @@ public:
         mapObjects.push_back(std::make_shared<Platform>(4315, -140, Rectangle{6565, -620, 1610, 100}));
         mapObjects.push_back(std::make_shared<Ladder>(1970, 128, Vector2{8175, -620}, Vector2{8895, -620}, Vector2{8895, -970}));
         mapObjects.push_back(std::make_shared<Platform>(4315, -140, Rectangle{8895, -970, 2500, 100}));
+        
     }
 
     ~Map() {
-        UnloadTexture(background); // Release the texture
+        UnloadTexture(background); // Освобождение текстуры
     }
 
     void mapDraw() {
