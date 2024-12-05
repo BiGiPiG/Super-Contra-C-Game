@@ -6,8 +6,11 @@
 #include "GameCamera.h"
 #include "Alien.h"
 #include "GranateThrower.hpp"
+#include "Turret.hpp"
 #include <iostream>
 #include <map>
+#include <variant>
+#include "SpawnerAliens.hpp"
 
 class Game {
 public:
@@ -18,50 +21,169 @@ public:
     void drawMap() {
         map.mapDraw();
     }
-};
 
-void updateAliens(std::vector<std::shared_ptr<Alien>>& aliens, Player& bill, 
+    void updateAliens(std::vector<std::shared_ptr<Alien>>& aliens, Player& bill, 
                   const std::vector<std::shared_ptr<MapObject>>& mapObjects) {
 
-    if (!aliens.empty()) {
+        if (!aliens.empty()) {
 
-        for (const auto &alien : aliens) {
-            alien->runRight(mapObjects);
-            alien->updatePhysics(mapObjects);
-            for (const auto &bullet : bill.getBullets()) {
-                alien->checkAlien(mapObjects, bill.getPosition(), bullet->hitBox);
+            for (const auto &alien : aliens) {
+                alien->runRight(mapObjects);
+                alien->updatePhysics(mapObjects);
+                for (const auto &bullet : bill.getBullets()) {
+                    alien->checkAlien(mapObjects, bill.getPosition(), bullet->hitBox);
+                }
+                alien->updateAnimation();
             }
-            alien->updateAnimation();
+
         }
 
     }
-}
 
-void updateAliensFrames(std::vector<std::shared_ptr<Alien>>& aliens) {
+    void processInput(Player& bill) {
+        if (IsKeyPressed(KEY_SPACE)) {
+            bill.jump(map.getPlatforms());
+        }
 
-    if (!aliens.empty()) {
+        if (IsKeyPressed(KEY_F)) { // Если нажата клавиша A для прыжка
+            bill.shoot(); // Вызываем метод прыжка у игрока
+            bill.setShooting(true);
+            //bill.setShooting(false);
+        } 
 
-        for (const auto &alien : aliens) {
-            alien->updateCurrentRunFrame();
-            alien->setChangeFrame();
+        if (IsKeyDown(KEY_UP)) {
+            bill.setLookUp(true);
+        } else {
+            bill.setLookUp(false);
+        }
+
+        if (IsKeyDown(KEY_DOWN)) {
+            bill.setLookDown(true);
+        } else {
+            bill.setLookDown(false);
         }
         
+        if (IsKeyDown(KEY_RIGHT)) {
+            bill.runRight(map.getPlatforms());
+            bill.setMoving(true);
+        } else if (IsKeyDown(KEY_LEFT)) {
+            bill.runLeft(map.getPlatforms());
+            bill.setMoving(true);
+        } else {
+            bill.setMoving(false);
+        }
     }
-}
 
-void drawAliens(std::vector<std::shared_ptr<Alien>>& aliens) {
+    // Обновление состояния игры
+void updateGame(Player& bill, std::vector<std::shared_ptr<Alien>>& aliens,
+                std::unique_ptr<GranateThrower>& testThrower,
+                std::unique_ptr<Ledder>& testLedder,
+                float deltaTime, std::unique_ptr<Turret>& turret) {
+        updateAliens(aliens, bill, map.getPlatforms());
 
-    if (!aliens.empty()) {
+        if (testThrower != nullptr) {
+            testThrower->isDie(bill.getBullets());
+            testThrower->update(deltaTime);
+            testThrower->updateGranates(map.getPlatforms(), deltaTime);
+            if (!testThrower->getAlive()) { // Проверяем состояние метателя перед обновлением
+                testThrower.reset();
+            } 
+        }
 
-        for (const auto &alien : aliens) {
-            alien->draw();
+        if (turret) {
+            turret->checkDie(bill.getBullets());
+            turret->update(deltaTime, bill, map.getPlatforms()); // Update turret state
+            if (turret->getDie()) {
+                turret.reset();
+            }
+        }
+
+        if (testLedder != nullptr) {
+            testLedder->isDie(bill.getBullets());
+            testLedder->update(bill.getPosition(), map.getPlatforms(), deltaTime);
+            if (!testLedder->getAlive()) { // Проверяем состояние метателя перед обновлением
+                testLedder.reset();
+            } 
+        }
+        
+        for (auto it = aliens.begin(); it != aliens.end();) {
+            if (!(*it)->isAlive()) {
+                it = aliens.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        bill.update(map.getPlatforms());
+    
+    }
+
+    void updateAliensFrames(std::vector<std::shared_ptr<Alien>>& aliens) {
+
+        if (!aliens.empty()) {
+
+            for (const auto &alien : aliens) {
+                alien->updateCurrentRunFrame();
+                alien->setChangeFrame();
+            }
+            
         }
 
     }
-}
 
-int main(void)
-{
+    void drawScene(Player& bill, const std::vector<std::shared_ptr<Alien>>& aliens,
+               const std::unique_ptr<GranateThrower>& testThrower,
+               const std::unique_ptr<Ledder>& testLedder,
+               GameCamera& gameCamera, std::unique_ptr<Turret>& turret) {
+        BeginDrawing();
+
+        BeginMode2D(gameCamera.camera);
+
+        drawMap();
+
+        if (turret) {
+            turret->draw(); // Draw the turret
+        }
+
+        bill.draw();
+
+        drawAliens(aliens);
+
+        if (testThrower != nullptr) {
+            testThrower->draw();
+        }
+
+        if (testLedder != nullptr) {
+            testLedder->draw();
+        }
+
+        if (turret) {
+            turret->drawBullet(); // Draw the turret
+        }
+
+        
+        
+        //DrawTriangleLines(Vector2{3280, 400}, Vector2{4315, 400}, Vector2{4315, -140}, BLUE); 
+        DrawTriangleLines( Vector2{4185, 130}, Vector2{4885, 130}, Vector2{4885, -220}, BLUE);
+        DrawRectangleLines(4885, -220, 900, 100, BLUE);
+        EndMode2D(); 
+        EndDrawing();
+    }
+
+    void drawAliens(const std::vector<std::shared_ptr<Alien>>& aliens) {
+
+        if (!aliens.empty()) {
+
+            for (const auto &alien : aliens) {
+                alien->draw();
+            }
+
+        }
+    }
+
+};
+
+void gameRun() {
     // Initialization
     //--------------------------------------------------------------------------------------
     const int screenWidth = 900;
@@ -69,7 +191,8 @@ int main(void)
 
     int frameDelay = 7; // Задержка между кадрами
     int frameDelayCounter = 0;
-    int currentFrame = 0;
+
+    std::vector<std::variant<std::shared_ptr<LedderBullet>, std::shared_ptr<TurretBullet>, std::shared_ptr<Granate>> allBullets;
 
     InitWindow(screenWidth, screenHeight, "SuperContra");
     Game game("resources/SuperContraMap.png");
@@ -77,6 +200,9 @@ int main(void)
     std::vector<std::shared_ptr<Alien>> aliens;
     std::unique_ptr<GranateThrower> testThrower = std::make_unique<GranateThrower>(5360, -680, "resources/GranateThrower.png");
     std::unique_ptr<Ledder> testLedder = std::make_unique<Ledder>(500, 200);
+    std::unique_ptr<Turret> turret = std::make_unique<Turret>(900.0f, 390.0f, 3.0f);
+
+    SpawnerAliens spawner(2.0f, 0, 200, "resources/AlienRunner.png");
     
     GameCamera gameCamera(screenWidth, screenHeight);
 
@@ -105,110 +231,34 @@ int main(void)
             bill.isPlayerAlive(aliens, testLedder->getBullets());
         }
         
+        game.processInput(bill);
         
-        if (IsKeyPressed(KEY_SPACE)) {
-            bill.jump(game.map.getPlatforms());
-        }
+        //spawner.update(deltaTime);
+        //auto aliens = spawner.getAliens();
 
-        if (IsKeyPressed(KEY_F)) { // Если нажата клавиша A для прыжка
-            bill.shoot(); // Вызываем метод прыжка у игрока
-            bill.setShooting(true);
-            //bill.setShooting(false);
-        } 
-
-        if (IsKeyDown(KEY_UP)) {
-            bill.setLookUp(true);
-        } else {
-            bill.setLookUp(false);
-        }
-
-        if (IsKeyDown(KEY_DOWN)) {
-            bill.setLookDown(true);
-        } else {
-            bill.setLookDown(false);
-        }
+        game.updateGame(bill, aliens, testThrower, testLedder, deltaTime, turret);
         
-        if (IsKeyDown(KEY_RIGHT)) {
-            bill.runRight(game.map.getPlatforms());
-            bill.setMoving(true);
-        } else if (IsKeyDown(KEY_LEFT)) {
-            bill.runLeft(game.map.getPlatforms());
-            bill.setMoving(true);
-        } else {
-            bill.setMoving(false);
-        }
         
-        updateAliens(aliens, bill, game.map.getPlatforms());
         if (spawnGranates >= spawnCounter) {
             spawnGranates = 0;
         }
         
-        if (testThrower != nullptr) {
-            testThrower->isDie(bill.getBullets());
-            testThrower->update(deltaTime);
-            testThrower->updateGranates(game.map.getPlatforms(), deltaTime);
-            if (!testThrower->getAlive()) { // Проверяем состояние метателя перед обновлением
-                testThrower.reset();
-            } 
-        }
-
-        if (testLedder != nullptr) {
-            testLedder->isDie(bill.getBullets());
-            testLedder->update(bill.getPosition(), game.map.getPlatforms(), deltaTime);
-            if (!testLedder->getAlive()) { // Проверяем состояние метателя перед обновлением
-                testLedder.reset();
-            } 
-        }
         
-        for (auto it = aliens.begin(); it != aliens.end();) {
-            if (!(*it)->isAlive()) {
-                it = aliens.erase(it);
-            } else {
-                ++it;
-            }
-        }
-
-        bill.update(game.map.getPlatforms());
         bill.updateAnimation(deltaTime);
         
         gameCamera.setCameraTarget(bill.getPosition().x + bill.getWidth() / 2, bill.getPosition().y + bill.getHeight() / 2 - 140);
         if (frameDelayCounter >= frameDelay) {
         
             bill.addCurFrame();
-
-            updateAliensFrames(aliens);
+            game.updateAliensFrames(aliens);
             frameDelayCounter = 0;
-            
-            if (bill.getJumping()) {    
-                currentFrame = (currentFrame + 1) % 4;
-            } else if (bill.getMoving()) {
-                currentFrame = (currentFrame + 1) % 6;   
-            } else {  
-                currentFrame = 0;
-            }
             
         }
         //----------------------------------------------------------------------------------
 
         // Draw
         //----------------------------------------------------------------------------------
-        BeginDrawing();
-        BeginMode2D(gameCamera.camera);
-        game.drawMap();
-        bill.draw();
-        drawAliens(aliens);
-        if (testThrower != nullptr) {
-            testThrower->draw();
-        }
-        if (testLedder != nullptr) {
-            testLedder->draw();
-        }
-        
-        //DrawTriangleLines(Vector2{3280, 400}, Vector2{4315, 400}, Vector2{4315, -140}, BLUE); 
-        DrawTriangleLines( Vector2{4185, 130}, Vector2{4885, 130}, Vector2{4885, -220}, BLUE);
-        DrawRectangleLines(4885, -220, 900, 100, BLUE);
-        EndMode2D(); 
-        EndDrawing();
+        game.drawScene(bill, aliens, testThrower, testLedder, gameCamera, turret);
         //----------------------------------------------------------------------------------
     }
 
@@ -216,7 +266,11 @@ int main(void)
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
+}
 
-      return 0;
+int main(void)
+{
+    gameRun();
+    return 0;
 }
 

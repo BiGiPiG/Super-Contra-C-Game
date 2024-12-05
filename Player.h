@@ -38,7 +38,7 @@ private:
     float jumpHeight = 15;
     float bulletSpeed = 20.0f; // Скорость пулиg
     float frameTimer = 0.0f;
-    float frameSpeed = 0.1f;
+    float frameSpeed = 0.2f;
 
     Vector2 velocity = {5, 0};
 
@@ -375,89 +375,6 @@ public:
         }
     }
 
-/*
-    void updateAnimation() {
-    // Обновление анимации смерти
-    currentFrame++;
-    if (isDying) {
-        frameTimer += GetFrameTime(); // Увеличиваем таймер
-
-        if (frameTimer >= frameSpeed) { 
-            currentDieFrame++;
-            frameTimer = 0.0f;
-
-            if (currentDieFrame < deathFrames) {
-                position.x -= 10; // Сдвиг позиции
-                position.y -= 10; // Сдвиг позиции
-                textureRec.x = (float)playerTexture.width / countFrameRun * currentDieFrame;
-                textureRec.y = (float)playerTexture.height / countAnimations * 5; // Кадр смерти
-            } else {
-                isAlive = false; // Устанавливаем флаг мертвого состояния
-                isDying = false; // Завершаем анимацию смерти
-                currentDieFrame = deathFrames - 1; // Останавливаемся на последнем кадре
-            }
-        }
-        return; // Прекращаем выполнение функции, если метатель мертв
-    }
-
-    // Обновление анимации прыжка
-    if (isJumping) {
-        currentFrame %= countFrameJump;
-        textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
-        textureRec.y = (float)playerTexture.height / countAnimations * 2; // Кадр прыжка
-        return;
-    }
-
-    if (isMoving) {
-        if (lookDown) {
-            currentFrame %= countRunFrames;
-            textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
-            textureRec.y = (float)playerTexture.height / countAnimations * 4; // Кадр runDown
-        } else if (lookUp) {
-            currentFrame %= countRunFrames;
-            textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
-            textureRec.y = (float)playerTexture.height / countAnimations * 3; // Кадр runUp
-        } else {
-            if (isShooting) {
-                currentFrame %= countRunFrames;
-                textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
-                textureRec.y = (float)playerTexture.height / countAnimations; // Кадр runShoot
-            } else {
-                currentFrame %= countRunFrames;
-                textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
-                textureRec.y = 0; // Кадр run
-            }
-        }
-    } else if (lookDown) {
-        if (isShooting) {
-            currentFrame %= countStatShoot;
-            textureRec.x = 4 + (float)playerTexture.width / countFrames * currentFrame; //кадр StatDownShoot
-            textureRec.y = (float)playerTexture.height / countAnimations * 6;
-        } else {
-            textureRec.x = (float)playerTexture.width / countFrames * 4;
-            textureRec.y = (float)playerTexture.height / countAnimations * 6; // Кадр down   
-        }
-    } else if (lookUp) {
-        if (isShooting) {
-            currentFrame %= countStatShoot;
-            textureRec.x = 2 + (float)playerTexture.width / countFrames * currentFrame; //кадр StatUpShoot
-            textureRec.y = (float)playerTexture.height / countAnimations * 6;
-        } else {
-            textureRec.x = (float)playerTexture.width / countFrames * 2;
-            textureRec.y = (float)playerTexture.height / countAnimations * 6; // Кадр up
-        }
-    } else {
-        if (isShooting) {
-            currentFrame %= countStatShoot;
-            textureRec.x = (float)playerTexture.width / countFrames * currentFrame; //кадр StatShoot
-            textureRec.y = (float)playerTexture.height / countAnimations * 6;
-        } else {
-            textureRec.x = 0;
-            textureRec.y = (float)playerTexture.height / countAnimations * 6; // Кадр up
-        }
-    }
-}   
-*/
     void updatePhysics(const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
 
         //std::cout << velocity.y << " " << position.y << std::endl;

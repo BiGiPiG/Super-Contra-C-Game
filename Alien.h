@@ -240,7 +240,6 @@ public:
         // Деактивируем пулю, если она выходит за пределы экрана
         if (position.x < 0 || position.x > playerPos.x + GetScreenWidth() || 
             position.y > playerPos.y + GetScreenHeight()) {
-            std::cout << "diePos" << std::endl;
             isActive = false;
         }
         if (CheckCollisionRecs(hitBox, bullet)) {
