@@ -6,7 +6,7 @@ class Granate {
 private:
 
     Vector2 position;
-    Rectangle hitBox;
+    
     Rectangle textureRec;
     Texture2D granateTexture;
     
@@ -27,6 +27,8 @@ private:
     bool isExploding = false; // Флаг для отслеживания состояния взрыва
 
 public:
+
+    Rectangle hitBox;
 
     bool getActive() {
         return isActive;

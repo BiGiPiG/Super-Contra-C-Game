@@ -4,6 +4,12 @@
 #include "Bullet.h"
 #include "Alien.h"
 #include "LedderBullet.hpp"
+#include "Granate.hpp"
+#include "TurretBullet.hpp"
+
+#include <variant>
+
+using BulletVariant = std::variant<std::shared_ptr<LedderBullet>, std::shared_ptr<TurretBullet>, std::shared_ptr<Granate>>;
 
 class Player {
 private:
@@ -501,7 +507,7 @@ public:
     }   
 
     void isPlayerAlive(std::vector<std::shared_ptr<Alien>>& aliens, 
-                        std::vector<std::shared_ptr<LedderBullet>> ledderBullets) {
+                        std::vector<BulletVariant> &bullets) {
         
         if (!aliens.empty()) {
             for (const auto &alien : aliens) {
@@ -512,12 +518,27 @@ public:
             }
         }
 
-        if (!ledderBullets.empty()) {
-            for (const auto &bullet : ledderBullets) {
-                if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
-                    isDying = true;
-                    countLifes -= 1;
-                    return;
+        if (!bullets.empty()) {
+            for (auto &bullet : bullets) {
+                if (auto granate = std::get_if<std::shared_ptr<Granate>>(&bullet)) {
+                    if (CheckCollisionRecs(hitBox, (*granate)->hitBox)) {
+                        isDying = true;
+                        countLifes -= 1;
+                        return;
+                    }
+                } else if (auto ledderBullet = std::get_if<std::shared_ptr<LedderBullet>>(&bullet)) {
+                    if (CheckCollisionRecs(hitBox, (*ledderBullet)->hitBox)) {
+                        isDying = true;
+                        countLifes -= 1;
+                        return;
+                    }
+                } else if (auto turretBullet = std::get_if<std::shared_ptr<TurretBullet>>(&bullet)) {
+                    if (CheckCollisionRecs(hitBox, (*turretBullet)->hitBox)) {
+                        
+                        isDying = true;
+                        countLifes -= 1;
+                        return;
+                    }
                 }
             }
         }

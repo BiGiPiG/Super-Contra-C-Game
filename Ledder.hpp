@@ -1,14 +1,18 @@
 #pragma once
 #include "raylib.h"
 #include "LedderBullet.hpp"
+#include "TurretBullet.hpp"
+#include "LedderBullet.hpp"
+
+#include <variant>
 #include <memory>
 #include <vector>
 #include <algorithm>
 
+using BulletVariant = std::variant<std::shared_ptr<LedderBullet>, std::shared_ptr<TurretBullet>, std::shared_ptr<Granate>>;
+
 class Ledder {
 private:
-
-    std::vector<std::shared_ptr<LedderBullet>> bullets;
 
     Vector2 position;
     Rectangle hitBox;
@@ -87,10 +91,6 @@ private:
 
 public:
 
-    std::vector<std::shared_ptr<LedderBullet>> getBullets() {
-        return bullets;
-    }
-
     bool getAlive() {
         return isAlive;
     }
@@ -102,32 +102,14 @@ public:
      }
 
 
-     void shoot(Vector2 target) {
+     void shoot(Vector2 target, std::vector<BulletVariant> &bullets) {
         float bulletPosX = position.x + (lookRight ? 65 : 20);
         float bulletPosY = position.y + 70;
         bullets.push_back(std::make_shared<LedderBullet>(bulletPosX, bulletPosY, target.x + 45, target.y + 60, lookRight));
-     }
-
-     void updateBullets(const std::vector<std::shared_ptr<MapObject>>& mapObjects, Vector2 playerPos, float deltaTime) {
-        for (auto it = bullets.begin(); it != bullets.end();) {
-            (*it)->update(mapObjects, playerPos);
-            if (!(*it)->isActive) {
-                it = bullets.erase(it); // Удаляем неактивные пули
-            } else {
-                (*it)->updateAnimation(deltaTime);
-                ++it;
-            }
-        }
-    }
-
-     void drawBullets() const {
-        for (const auto& bullet : bullets) {
-            bullet->draw();
-        }
     }
 
     void update(Vector2 target, const std::vector<std::shared_ptr<MapObject>>& mapObjects, 
-            float deltaTime) {
+            float deltaTime, std::vector<BulletVariant> &bullets) {
     
         if (isDying) {
             // Update death animation if the shooter is dead
@@ -147,7 +129,7 @@ public:
         // Handle shooting logic
         if (currentShotCount < shotQueueCount) {
             if (shotTimer >= shotInterval) {
-                shoot(target); // Execute shooting
+                shoot(target, bullets); // Execute shooting
                 shotTimer = 0.0f; // Reset shot timer
                 currentShotCount++; // Increment shot count
             }
@@ -161,7 +143,6 @@ public:
             queueTimer = 0.0f; // Reset queue timer for next cycle
         }
 
-        updateBullets(mapObjects, target, deltaTime); // Update bullets' positions and states
     }
 
     void draw() {
@@ -171,7 +152,6 @@ public:
         } else {
             drawDeathAnimation(); // Отрисовываем анимацию смерти
         }
-        drawBullets();
     }
 
     void isDie(std::vector<std::shared_ptr<Bullet>> bullets) {

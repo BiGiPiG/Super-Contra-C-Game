@@ -2,8 +2,15 @@
 #include "raylib.h"
 #include "TurretBullet.hpp"
 #include "Player.h"
+#include "LedderBullet.hpp"
+#include "Granate.hpp"
+
 #include <vector>
 #include <memory>
+#include <variant>
+
+
+using BulletVariant = std::variant<std::shared_ptr<LedderBullet>, std::shared_ptr<TurretBullet>, std::shared_ptr<Granate>>;
 
 class Turret {
 private:
@@ -12,8 +19,6 @@ private:
     Texture2D turretTexture; // Текстура турели
     Rectangle hitBox; 
     Rectangle textureRec;
-
-    std::vector<std::shared_ptr<TurretBullet>> bullets; // Вектор снарядов
 
     float fireRate; // Скорость стрельбы (время между выстрелами)
     float elapsedTime; // Время, прошедшее с последнего выстрела
@@ -51,18 +56,19 @@ public:
         return isDie;
     }
 
-    void update(float deltaTime, Player& player, std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    void update(float deltaTime, Player& player, 
+                std::vector<std::shared_ptr<MapObject>> mapObjects, std::vector<BulletVariant> &bullets) {
         if (isActive && !isAppearing && !isExplosion) {
 
             elapsedTime += deltaTime; // Увеличиваем прошедшее время
 
             if (elapsedTime >= fireRate) {
-                shoot(); // Стреляем
+                shoot(bullets); // Стреляем
+                std::cout<< bullets.size();
                 elapsedTime = 0; // Сбрасываем таймер
             }
 
         } else if (isAppearing && !isExplosion) {
-            std::cout << "appearence" << std::endl;
             appearanceElapsedTime += deltaTime;
             if (appearanceElapsedTime >= appearanceTime / appearanceFrameCount) {
                 currentAppearanceFrame++;
@@ -100,31 +106,12 @@ public:
                 appearence();
             }
         }
-
-        // Обновляем снаряды
-        for (auto it = bullets.begin(); it != bullets.end();) {
-            (*it)->update(mapObjects, player.getPosition());
-            (*it)->updateAnimation(deltaTime);
-            if (!(*it)->getAlive()) { // Удаляем мертвые снаряды
-                it = bullets.erase(it);
-            } else {
-                ++it;
-            }
-        }
-        
         
     }
 
     void draw() const {
         if (isActive || isAppearing) {
             DrawTextureRec(turretTexture, textureRec, position, WHITE); // Рисуем турель
-        }
-    }
-
-    void drawBullet() {
-        
-        for (const auto& bullet : bullets) {
-            bullet->draw(); // Рисуем все снаряды
         }
     }
 
@@ -149,7 +136,7 @@ private:
         return (player.getPosition().x > position.x - 500 && player.getPosition().x < position.x + 500);
     }
 
-    void shoot() {
+    void shoot(std::vector<BulletVariant> &bullets) {
         Vector2 bulletPosition = { position.x, position.y + turretTexture.height / 2 - 27.0f }; // Позиция снаряда
         bullets.push_back(std::make_shared<TurretBullet>(bulletPosition.x, bulletPosition.y)); // Создаем новый снаряд
     }

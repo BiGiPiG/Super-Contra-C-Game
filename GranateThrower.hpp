@@ -1,8 +1,15 @@
 #pragma once
+
 #include "raylib.h"
 #include "Granate.hpp"
+#include "TurretBullet.hpp"
+#include "LedderBullet.hpp"
+
 #include <vector>
 #include <memory>
+#include <variant>
+
+using BulletVariant = std::variant<std::shared_ptr<LedderBullet>, std::shared_ptr<TurretBullet>, std::shared_ptr<Granate>>;
 
 class GranateThrower {
 private:
@@ -103,15 +110,15 @@ public:
     }
 
     //бросить гранату
-    void throwGranate() {
+    void throwGranate(std::vector<BulletVariant> &bullets) {
         if (currentGranateCount < granateQueueCount) {
-            granates.push_back(std::make_shared<Granate>(position.x + 15, position.y, "resources/Granate.png"));
+            bullets.push_back(std::make_shared<Granate>(position.x + 15, position.y, "resources/Granate.png"));
             currentGranateCount++;
             changeFrame = true;
         }
     }
 
-    void update(float deltaTime) {
+    void update(float deltaTime, std::vector<BulletVariant> &bullets) {
         if (isDying) {
             updateDeathAnimation(deltaTime); // Обновляем анимацию смерти если метатель мертв
             return; // Прекращаем выполнение метода, если метатель мертв
@@ -121,7 +128,7 @@ public:
 
         if (currentGranateCount < granateQueueCount) {
             if (throwTimer >= throwInterval) {
-                throwGranate(); // Бросаем гранату
+                throwGranate(bullets); // Бросаем гранату
                 throwTimer = 0.0f; // Сбрасываем таймер
             }
         } else {
@@ -135,20 +142,6 @@ public:
         updateAnimation(deltaTime); // Обновляем анимацию метателя
     }
 
-    void updateGranates(std::vector<std::shared_ptr<MapObject>> mapObjects, float deltaTime) {
-        if (!granates.empty()) {
-            for (auto it = granates.begin(); it != granates.end();) {
-                if ((*it)->getActive()) {
-                    (*it)->updateGranate(mapObjects);
-                    (*it)->updateAnimation(deltaTime);
-                    ++it;
-                } else {
-                    it = granates.erase(it);
-                }
-            }
-        }
-    }
-
     //отрисовка метателя
     void draw() {
         if (!isDying) {
@@ -156,17 +149,6 @@ public:
             //DrawRectangleRec(hitBox, GREEN);
         } else {
             drawDeathAnimation(); // Отрисовываем анимацию смерти
-        }
-        
-        drawGranates();
-    }
-
-    //отрисовка гранат
-    void drawGranates() {
-        if (!granates.empty()) {
-            for (const auto &granate : granates) {
-                granate->draw();
-            }
         }
     }
 

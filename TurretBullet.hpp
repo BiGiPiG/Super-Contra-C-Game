@@ -3,7 +3,7 @@
 #include "Platform.h"
 #include "Ladder.h"
 #include <cmath>
-
+   
 class TurretBullet {
 public:
 
@@ -88,6 +88,7 @@ public:
     }
 
     void draw() {
+        
         if (isActive) {       
             DrawTextureRec(bullet, textureRec, position, WHITE);
             //DrawRectangleRec(hitBox, GREEN);
