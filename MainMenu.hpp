@@ -1,7 +1,7 @@
 #include "raylib.h"
 #include <iostream>
 
-class MainMenu {\
+class MainMenu {
 private:
     int countFrames = 2;
     int currentFrame = 0;
@@ -18,7 +18,7 @@ public:
         UnloadTexture(mainMenu);
     }
 
-    void Show() {
+    void show() {
         while (!WindowShouldClose()) {
             BeginDrawing();
             ClearBackground(RAYWHITE);

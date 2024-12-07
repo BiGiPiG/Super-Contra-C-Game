@@ -23,7 +23,7 @@ private:
     int currentRunUpFrame = 0;
     int currentRunDownFrame = 0;
     int currentDieFrame = 0;
-    int countLifes = 3;
+    int countLives = 3;
     int deathFrames = 4;
 
 
@@ -167,6 +167,10 @@ public:
 
     std::vector<std::shared_ptr<Bullet>> getBullets() {
         return bullets;
+    }
+
+    int getCOuntLives() {
+        return countLives;
     }
 
     void addCurFrame() {
@@ -493,7 +497,7 @@ public:
     }
 
     void drawLives() const {
-        for (int i = 0; i < countLifes; i++) {
+        for (int i = 0; i < countLives; i++) {
             DrawTexture(lifeIcon, position.x - 400 + 10 + i * (lifeIcon.width + 5), position.y - 410, WHITE); // Отрисовка иконок жизней
         }
     }
@@ -592,19 +596,19 @@ public:
                 if (auto granate = std::get_if<std::shared_ptr<Granate>>(&bullet)) {
                     if (CheckCollisionRecs(hitBox, (*granate)->hitBox)) {
                         die();
-                        countLifes -= 1;
+                        countLives -= 1;
                         return;
                     }
                 } else if (auto ledderBullet = std::get_if<std::shared_ptr<LedderBullet>>(&bullet)) {
                     if (CheckCollisionRecs(hitBox, (*ledderBullet)->hitBox)) {
                         die();
-                        countLifes -= 1;
+                        countLives -= 1;
                         return;
                     }
                 } else if (auto turretBullet = std::get_if<std::shared_ptr<TurretBullet>>(&bullet)) {
                     if (CheckCollisionRecs(hitBox, (*turretBullet)->hitBox)) {
                         die();
-                        countLifes -= 1;
+                        countLives -= 1;
                         return;
                     }
                 }

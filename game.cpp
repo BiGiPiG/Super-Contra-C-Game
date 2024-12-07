@@ -12,6 +12,7 @@
 #include "LedderBullet.hpp"
 #include "SpawnerAliens.hpp"
 #include "MainMenu.hpp"
+#include "GameOverMenu.hpp"
 
 #include <iostream>
 #include <map>
@@ -268,23 +269,17 @@ void updateGame(Player& bill, std::vector<std::shared_ptr<Alien>>& aliens,
 
 };
 
-void gameRun() {
+int gameRun() {
     // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 900;
-    const int screenHeight = 700;
-
-   
+    //--------------------------------------------------------------------------------------   
 
     int frameDelay = 7; // Задержка между кадрами
     int frameDelayCounter = 0;
 
     std::vector<BulletVariant> allBullets;
 
-    InitWindow(screenWidth, screenHeight, "SuperContra");
-
-    MainMenu mainMenu;
-    mainMenu.Show();
+    const int screenWidth = 900;
+    const int screenHeight = 700;
     
     Game game("resources/SuperContraMap.png");
     Player bill(0, 200, "resources/Bill.png");
@@ -318,6 +313,9 @@ void gameRun() {
             spawnCounter = 0; // Сброс счетчика
         }
 
+        if (bill.getCOuntLives() <= 0) {
+            break;
+        }
   
         bill.isPlayerAlive(aliens, allBullets);
         
@@ -356,15 +354,31 @@ void gameRun() {
         //----------------------------------------------------------------------------------
     }
 
+    GameOverMenu gameOverMenu;
+    int res = gameOverMenu.show();
+
     // De-Initialization
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
+    std::cout << res << std::endl;
+    return res;
 }
 
 int main(void)
 {
-    gameRun();
+    int enter = 1;
+    const int screenWidth = 900;
+    const int screenHeight = 700;
+
+    InitWindow(screenWidth, screenHeight, "SuperContra");
+
+    MainMenu mainMenu;
+    mainMenu.show();
+
+    while (enter) {
+        enter = gameRun();
+    }
     return 0;
 }
 
