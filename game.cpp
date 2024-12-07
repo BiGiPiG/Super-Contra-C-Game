@@ -10,10 +10,13 @@
 #include "TurretBullet.hpp"
 #include "Granate.hpp"
 #include "LedderBullet.hpp"
+#include "SpawnerAliens.hpp"
+#include "MainMenu.hpp"
+
 #include <iostream>
 #include <map>
 #include <variant>
-#include "SpawnerAliens.hpp"
+
 
 using BulletVariant = std::variant<std::shared_ptr<LedderBullet>, std::shared_ptr<TurretBullet>, std::shared_ptr<Granate>>;
 
@@ -271,12 +274,18 @@ void gameRun() {
     const int screenWidth = 900;
     const int screenHeight = 700;
 
+   
+
     int frameDelay = 7; // Задержка между кадрами
     int frameDelayCounter = 0;
 
     std::vector<BulletVariant> allBullets;
 
     InitWindow(screenWidth, screenHeight, "SuperContra");
+
+    MainMenu mainMenu;
+    mainMenu.Show();
+    
     Game game("resources/SuperContraMap.png");
     Player bill(0, 200, "resources/Bill.png");
     std::vector<std::shared_ptr<Alien>> aliens;

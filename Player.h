@@ -63,6 +63,13 @@ private:
     bool isAlive = true;
     bool isDying = false;
 
+    // Переменные для мигания
+    float blinkTimer = 0.0f; // Таймер для управления миганием
+    float blinkDuration = 0.1f; // Длительность одного мигания
+    int blinkCount = 15; // Количество миганий
+    int currentBlink = 0; // Текущий счетчик миганий
+    bool isBlinking = false; // Флаг, указывающий на то, что игрок мигает
+
 
     Texture2D playerTexture;
     Vector2 position;
@@ -79,8 +86,8 @@ private:
                 textureRec.x = (float)playerTexture.width / countFrameRun * currentDieFrame;
                 textureRec.y = (float)playerTexture.height / countAnimations * 5; // Кадр смерти
             } else {
-                isAlive = false; // Устанавливаем флаг мертвого состояния
                 isDying = false; // Завершаем анимацию смерти
+                isBlinking = true; // Начинаем мигание
                 currentDieFrame = deathFrames - 1; // Останавливаемся на последнем кадре
             }
         }
@@ -123,6 +130,26 @@ private:
         } else {
             textureRec.x = 0; // Кадр ожидания
             textureRec.y = (float)playerTexture.height / countAnimations * 6;
+        }
+    }
+
+    void die() {
+        isDying = true; // Устанавливаем флаг смерти
+        currentBlink = 0; // Сброс счетчика миганий
+    }
+
+    void updateBlinking(float deltaTime) {
+        if (isBlinking) {
+            blinkTimer += deltaTime;
+
+            if (blinkTimer >= blinkDuration) {
+                blinkTimer = 0.0f; // Сброс таймера
+                currentBlink++; // Увеличиваем счетчик миганий
+
+                if (currentBlink >= blinkCount) {
+                    isBlinking = false; // Завершаем мигание
+                }
+            }
         }
     }
 
@@ -235,6 +262,11 @@ public:
     }
 
     void runLeft(const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
+
+        if (isDying) {
+            return;
+        }
+
         leftRun = true;
         rightRun = false;
 
@@ -273,6 +305,10 @@ public:
     }
 
     void runRight(const std::vector<std::shared_ptr<MapObject>> mapObjects) {
+
+        if (isDying) {
+            return;
+        }
 
         rightRun = true;
         leftRun = false;
@@ -316,6 +352,11 @@ public:
     }
 
     void jump(const std::vector<std::shared_ptr<MapObject>> mapObjects) {
+
+        if (isDying) {
+            return;
+        }
+
         if (!isJumping && (isOnGround(mapObjects) || isOnLadder(mapObjects))) { // Проверка, может ли игрок прыгнуть
             velocity.y = -jumpHeight; // Устанавливаем вертикальную скорость для прыжка
             isJumping = true;   // Устанавливаем флаг прыжка
@@ -324,6 +365,10 @@ public:
 
     void updateAnimation(float deltaTime) {
         frameTimer += deltaTime; // Увеличиваем таймер
+
+        if (isBlinking) {
+            updateBlinking(deltaTime);
+        }
 
         // Проверяем состояние смерти
         if (isDying) {
@@ -433,12 +478,23 @@ public:
     }
 
     void draw() const {
-        DrawTextureRec(playerTexture, textureRec, position, WHITE); // Отрисовка текстуры игрока на экране
-        //DrawRectangleRec(hitBox, GREEN);
+        if (isBlinking) {
+            // Определяем прозрачность на основе текущего мигания
+            Color color = (currentBlink % 2 == 0) ? WHITE : (Color){255, 255, 255, 0}; // Прозрачность на четных кадрах
+            
+            DrawTextureRec(playerTexture, textureRec, position, color); // Отрисовка с учетом прозрачности
+        } else {
+            DrawTextureRec(playerTexture, textureRec, position, WHITE); // Обычная отрисовка
+        }
         drawBullets();
     }
 
     void shoot() {
+
+        if (isDying) {
+            return;
+        }
+
         float bulletDirectionX;
         float bulletDirectionY;
         float bulletPosX;
@@ -508,11 +564,15 @@ public:
 
     void isPlayerAlive(std::vector<std::shared_ptr<Alien>>& aliens, 
                         std::vector<BulletVariant> &bullets) {
+
+        if (isBlinking) {
+            return;
+        }
         
         if (!aliens.empty()) {
             for (const auto &alien : aliens) {
                 if (CheckCollisionRecs(hitBox, alien->getHitBox())) {
-                    isDying = true;
+                    die();
                     return;
                 }
             }
@@ -522,20 +582,19 @@ public:
             for (auto &bullet : bullets) {
                 if (auto granate = std::get_if<std::shared_ptr<Granate>>(&bullet)) {
                     if (CheckCollisionRecs(hitBox, (*granate)->hitBox)) {
-                        isDying = true;
+                        die();
                         countLifes -= 1;
                         return;
                     }
                 } else if (auto ledderBullet = std::get_if<std::shared_ptr<LedderBullet>>(&bullet)) {
                     if (CheckCollisionRecs(hitBox, (*ledderBullet)->hitBox)) {
-                        isDying = true;
+                        die();
                         countLifes -= 1;
                         return;
                     }
                 } else if (auto turretBullet = std::get_if<std::shared_ptr<TurretBullet>>(&bullet)) {
                     if (CheckCollisionRecs(hitBox, (*turretBullet)->hitBox)) {
-                        
-                        isDying = true;
+                        die();
                         countLifes -= 1;
                         return;
                     }
