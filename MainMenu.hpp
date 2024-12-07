@@ -1,10 +1,21 @@
 #include "raylib.h"
 #include <iostream>
 
-class MainMenu {
+class MainMenu {\
+private:
+    int countFrames = 2;
+    int currentFrame = 0;
+    Texture2D mainMenu;
+    Rectangle textureRec = {0, 0, 900, 700};
+
 public:
     MainMenu() {
         // Конструктор может быть использован для инициализации переменных, если необходимо
+        mainMenu = LoadTexture("resources/MainMenu.png");
+    }
+
+    ~MainMenu() {
+        UnloadTexture(mainMenu);
     }
 
     void Show() {
@@ -12,14 +23,17 @@ public:
             BeginDrawing();
             ClearBackground(RAYWHITE);
             
-            DrawText("Главное Меню", 350, 200, 40, DARKGRAY);
-            DrawText("Нажмите [ENTER] для начала игры", 250, 300, 20, DARKGRAY);
-            DrawText("Нажмите [ESC] для выхода", 270, 350, 20, DARKGRAY);
+            DrawTextureRec(mainMenu, textureRec, Vector2 {0, 0}, WHITE);
             
             EndDrawing();
 
             if (IsKeyPressed(KEY_ENTER)) {
                 break; // Выход из меню и начало игры
+            }
+
+            if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_LEFT)) {
+                currentFrame = (currentFrame + 1) % countFrames;
+                textureRec.x = mainMenu.width / countFrames * currentFrame;
             }
             
         }

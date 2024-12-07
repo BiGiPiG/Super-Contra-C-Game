@@ -1,7 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "raymath.h"
-#include "Bullet.h"
+#include "Bullet.hpp"
 #include "Alien.h"
 #include "LedderBullet.hpp"
 #include "Granate.hpp"
@@ -72,6 +72,7 @@ private:
 
 
     Texture2D playerTexture;
+    Texture2D lifeIcon;
     Vector2 position;
 
     void updateDeathAnimation() {
@@ -161,6 +162,7 @@ public:
         hitBox = { 25.0f + startX, 38.0f + startY, 50.0f, 100.0f }; 
         textureRec = { 0, 0, 100.0f, 138.0f };
         playerTexture = LoadTexture(texturePath); // Загрузка текстуры игрока
+        lifeIcon = LoadTexture("resources/life_icon.png");
     }
 
     std::vector<std::shared_ptr<Bullet>> getBullets() {
@@ -487,6 +489,13 @@ public:
             DrawTextureRec(playerTexture, textureRec, position, WHITE); // Обычная отрисовка
         }
         drawBullets();
+        drawLives();
+    }
+
+    void drawLives() const {
+        for (int i = 0; i < countLifes; i++) {
+            DrawTexture(lifeIcon, position.x - 400 + 10 + i * (lifeIcon.width + 5), position.y - 410, WHITE); // Отрисовка иконок жизней
+        }
     }
 
     void shoot() {
@@ -565,7 +574,7 @@ public:
     void isPlayerAlive(std::vector<std::shared_ptr<Alien>>& aliens, 
                         std::vector<BulletVariant> &bullets) {
 
-        if (isBlinking) {
+        if (isBlinking || isDying) {
             return;
         }
         

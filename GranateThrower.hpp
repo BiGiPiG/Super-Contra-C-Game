@@ -14,8 +14,6 @@ using BulletVariant = std::variant<std::shared_ptr<LedderBullet>, std::shared_pt
 class GranateThrower {
 private:
 
-    std::vector<std::shared_ptr<Granate>> granates;
-
     int countFrames = 2;
     int currentFrame = 0;
     int deathFrames = 3;

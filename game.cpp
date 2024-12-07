@@ -1,7 +1,7 @@
 #include "raylib.h"
 #include "Map.h"
 #include "Player.h"
-#include "Bullet.h"
+#include "Bullet.hpp"
 #include "Ledder.hpp"
 #include "GameCamera.h"
 #include "Alien.h"
