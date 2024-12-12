@@ -21,17 +21,27 @@ private:
     bool isHidden = false;
     bool isJumping = true; // Флаг прыжка
     bool isActive = true;
+    bool lookRight;
 
 public:
-    Alien(float startX, float startY, const char* texturePath) {
+    Alien(float startX, float startY, bool flag) {
         position = { startX, startY };
         hitBox = { 25.0f + startX, yShift + startY, 50.0f, 100.0f }; // Размер хитбокса
         textureRec = { 0, 0, 100.0f, 138.0f }; 
-        alienTexture = LoadTexture(texturePath); // Загрузка текстуры инопланетянина
+        alienTexture = LoadTexture("resources/AlienRunner.png"); // Загрузка текстуры инопланетянина
+        lookRight = flag;
+    }
+
+    bool isLookRight() {
+        return lookRight;
     }
 
     bool isAlive() {
         return isActive;
+    }
+
+    bool getIsHidden() {
+        return isHidden;
     }
 
     ~Alien() {

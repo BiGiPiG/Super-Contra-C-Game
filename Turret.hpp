@@ -145,7 +145,7 @@ private:
         isAppearing = true; // Начинаем анимацию появления
         hitBox.x = position.x; // Устанавливаем хитбокс на позицию турели
         hitBox.y = position.y;
-        hitBox.width = turretTexture.width / 2;
+        hitBox.width = turretTexture.width / 4;
         hitBox.height = turretTexture.height;
     }
 

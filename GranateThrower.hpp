@@ -96,11 +96,11 @@ public:
         return isAlive;
     }
 
-    GranateThrower(float startX, float startY, const char* texturePath) {
+    GranateThrower(float startX, float startY) {
         position = { startX, startY };
         hitBox = { 25.0f + startX, startY + 28.0f, 50.0f, 100.0f }; // Размер хитбокса
         textureRec = { 0, 0, 101.0f, 128.0f }; 
-        granateThrower = LoadTexture(texturePath);
+        granateThrower = LoadTexture("resources/GranateThrower.png");
     }
 
     ~GranateThrower() {
@@ -116,7 +116,7 @@ public:
         }
     }
 
-    void update(float deltaTime, std::vector<BulletVariant> &bullets) {
+    void update(float deltaTime, std::vector<BulletVariant> &bullets, Player& player) {
         if (isDying) {
             updateDeathAnimation(deltaTime); // Обновляем анимацию смерти если метатель мертв
             return; // Прекращаем выполнение метода, если метатель мертв
@@ -124,7 +124,7 @@ public:
 
         throwTimer += deltaTime; // Увеличиваем таймер
 
-        if (currentGranateCount < granateQueueCount) {
+        if (player.getPosition().x >= position.x - 500 && currentGranateCount < granateQueueCount) {
             if (throwTimer >= throwInterval) {
                 throwGranate(bullets); // Бросаем гранату
                 throwTimer = 0.0f; // Сбрасываем таймер
@@ -168,7 +168,7 @@ public:
     }
 
     //проверка состояния метателя
-    void isDie(std::vector<std::shared_ptr<Bullet>> bullets) {
+    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets) {
         if (!bullets.empty()) {
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {

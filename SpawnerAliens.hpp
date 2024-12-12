@@ -10,19 +10,18 @@ private:
     float elapsedTime; // Время, прошедшее с последнего спавна
     float spawnX; // Координата X для спавна
     float spawnY; // Координата Y для спавна
-    const char* texturePath; // Путь к текстуре инопланетянина
 
 public:
-    SpawnerAliens(float interval, float x, float y, const char* texture)
-        : spawnInterval(interval), spawnX(x), spawnY(y), texturePath(texture), elapsedTime(0) {}
+    SpawnerAliens(float interval, float x, float y)
+        : spawnInterval(interval), spawnX(x), spawnY(y), elapsedTime(0) {}
 
     void update(float deltaTime) {
         elapsedTime += deltaTime; // Увеличиваем прошедшее время
 
         if (elapsedTime >= spawnInterval) {
             // Создаем двух новых инопланетян и добавляем их в вектор
-            aliens.push_back(std::make_shared<Alien>(spawnX, spawnY, texturePath));
-            aliens.push_back(std::make_shared<Alien>(spawnX + 50, spawnY, texturePath)); // Спавн второго инопланетянина немного правее
+            aliens.push_back(std::make_shared<Alien>(spawnX, spawnY, true));
+            aliens.push_back(std::make_shared<Alien>(spawnX + 60, spawnY, true)); // Спавн второго инопланетянина немного правее
             elapsedTime = 0; // Сбрасываем таймер
         }
     }
@@ -37,3 +36,7 @@ public:
             [](const std::shared_ptr<Alien>& alien) { return !alien->isAlive(); }), aliens.end());
     }
 };
+
+/*
+    добавить обновление глобального вектора, выбор направления и сделать очередь
+*/

@@ -23,7 +23,7 @@ private:
     int currentRunUpFrame = 0;
     int currentRunDownFrame = 0;
     int currentDieFrame = 0;
-    int countLives = 3;
+    int countLives = 5;
     int deathFrames = 4;
 
 
@@ -584,7 +584,7 @@ public:
         
         if (!aliens.empty()) {
             for (const auto &alien : aliens) {
-                if (CheckCollisionRecs(hitBox, alien->getHitBox())) {
+                if (!alien->getIsHidden() && CheckCollisionRecs(hitBox, alien->getHitBox())) {
                     die();
                     return;
                 }
