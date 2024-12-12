@@ -121,7 +121,7 @@ public:
                 if (spawnTimer >= timeBetweenSpawn) {
                     spawnTimer = 0.0f;
                     bool flag = position.x + 260 <= player.getPosition().x ? true : false;
-                    aliens.push_back(std::make_shared<Alien>(position.x + 260, position.y + 140, "resources/AlienRunner.png", flag));
+                    aliens.push_back(std::make_shared<Alien>(position.x + 260, position.y + 140, flag));
                 }
             } else {
                 textureRec.x = heli.width / 2;
