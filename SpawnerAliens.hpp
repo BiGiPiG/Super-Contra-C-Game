@@ -1,15 +1,15 @@
 #pragma once
-#include "Alien.h"
+#include "Alien.hpp"
 #include <vector>
 #include <memory>
 #include <iostream>
 
 class SpawnerAliens {
 private:
-    float spawnInterval; // Интервал спавна инопланетян
-    float elapsedTime; // Время, прошедшее с последнего спавна
     float spawnX; // Координата X для спавна
     float spawnY; // Координата Y для спавна
+    float spawnInterval; // Интервал спавна инопланетян
+    
     bool isAlive = true;
 
     bool timeBetween = false;
@@ -17,10 +17,11 @@ private:
     int aliensPerSpawn; // Количество инопланетян, которые будут созданы за один раз
     float timeBetweenQueue; // Время между очередями спавна
     float queueElapsedTime; // Время, прошедшее с последнего спавна очереди
+    float elapsedTime; // Время, прошедшее с последнего спавна
 
 public:
     SpawnerAliens(float x = 0.0f, float y = 0.0f, float interval = 0.2f, int perSpawn = 2, float queueTime = 3.0f)
-        : spawnInterval(interval), spawnX(x), spawnY(y), elapsedTime(0), aliensPerSpawn(perSpawn), timeBetweenQueue(queueTime), queueElapsedTime(0)  {}
+        : spawnX(x), spawnY(y), spawnInterval(interval), aliensPerSpawn(perSpawn), timeBetweenQueue(queueTime), queueElapsedTime(0), elapsedTime(0) {}
 
     bool getIsAlive() {
         return isAlive;

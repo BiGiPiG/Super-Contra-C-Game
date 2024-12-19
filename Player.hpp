@@ -2,7 +2,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "Bullet.hpp"
-#include "Alien.h"
+#include "Alien.hpp"
 #include "LedderBullet.hpp"
 #include "Granate.hpp"
 #include "TurretBullet.hpp"

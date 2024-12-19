@@ -1,6 +1,6 @@
 #pragma once
 #include "raylib.h"
-#include "MapObject.h"
+#include "MapObject.hpp"
 
 class Ladder : public MapObject {
 private:

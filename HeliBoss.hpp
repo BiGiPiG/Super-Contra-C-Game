@@ -9,11 +9,12 @@
 
 class HeliBoss {
 private:
+
+    Vector2 position;   
     Vector2 startPos;
     float positionDelta = 1800.0f;
     Vector2 velocity = {3.0f, 0.1f};
 
-    Vector2 position;
     Rectangle textureRec;
     Texture2D heli;
     std::vector<std::shared_ptr<HeliGun>> guns;

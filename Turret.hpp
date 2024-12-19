@@ -1,7 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "TurretBullet.hpp"
-#include "Player.h"
+#include "Player.hpp"
 #include "LedderBullet.hpp"
 #include "Granate.hpp"
 
@@ -115,7 +115,11 @@ public:
         }
     }
 
-    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets) {
+    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets, int &score) {
+        if (isExplosion) {
+            return;
+        }
+
         if (!bullets.empty()) {
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
@@ -123,6 +127,7 @@ public:
                     bullet->isHidden = true;
                     if (hp <= 0) {
                         isExplosion = true;
+                        score += 1500;
                     }
                     return;
                 }

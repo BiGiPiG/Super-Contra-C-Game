@@ -1,7 +1,7 @@
 #pragma once
 #include "raylib.h"
-#include "Platform.h"
-#include "Ladder.h"
+#include "Platform.hpp"
+#include "Ladder.hpp"
 #include <cmath>
 
 class LedderBullet {
@@ -51,7 +51,6 @@ public:
     LedderBullet(float startX, float startY, float targetX, float targetY, bool flag) {
         position = { startX, startY };
 
-        std::cout << flag << std::endl;
         // Calculate direction vector from start to target
         float dirX = abs(targetX - startX);
         float dirY = abs(targetY - startY);

@@ -18,7 +18,7 @@ public:
         UnloadTexture(mainMenu);
     }
 
-    void show() {
+    int show() {
         while (!WindowShouldClose()) {
             BeginDrawing();
             ClearBackground(RAYWHITE);
@@ -35,7 +35,12 @@ public:
                 currentFrame = (currentFrame + 1) % countFrames;
                 textureRec.x = mainMenu.width / countFrames * currentFrame;
             }
-            
+
+            if (WindowShouldClose()) {
+                CloseWindow();
+                return 0;
+            }
         }
+        return 1;
     }
 };

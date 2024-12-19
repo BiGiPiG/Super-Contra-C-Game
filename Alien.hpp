@@ -109,7 +109,7 @@ public:
 
             position.x -= velocity.x;
             hitBox.x = 25 + position.x;
-            position.y += 2.6; // Смещение по Y при нахождении на лестнице
+            position.y += 3.12; // Смещение по Y при нахождении на лестнице
             hitBox.y = yShift + position.y; // Обновляем хитбокс
         } else if (isJumping) {
             position.x -= velocity.x;
@@ -143,7 +143,7 @@ public:
 
             position.x += velocity.x;
             hitBox.x = 25 + position.x;
-            position.y -= 2.6; // Смещение по Y при нахождении на лестнице
+            position.y -= 3.12; // Смещение по Y при нахождении на лестнице
             hitBox.y = yShift + position.y; // Обновляем хитбокс
 
         } else if (isJumping) {
@@ -246,7 +246,7 @@ public:
         }
     }
 
-    void checkAlien(std::vector<std::shared_ptr<MapObject>> mapObjects, Vector2 playerPos, std::shared_ptr<Bullet> bullet) {
+    void checkAlien(std::vector<std::shared_ptr<MapObject>> mapObjects, Vector2 playerPos, std::shared_ptr<Bullet> bullet, int &score) {
 
         if (isHidden) {
             return;
@@ -259,7 +259,9 @@ public:
             bullet->isHidden = true;
             isHidden = true;
             velocity = {0, 0};
+            score += 500;
         }
         
     }
+
 };

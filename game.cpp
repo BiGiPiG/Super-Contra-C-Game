@@ -1,10 +1,10 @@
 #include "raylib.h"
-#include "Map.h"
-#include "Player.h"
+#include "Map.hpp"
+#include "Player.hpp"
 #include "Bullet.hpp"
 #include "Ledder.hpp"
-#include "GameCamera.h"
-#include "Alien.h"
+#include "GameCamera.hpp"
+#include "Alien.hpp"
 #include "GranateThrower.hpp"
 #include "Turret.hpp"
 #include "TurretBullet.hpp"
@@ -31,8 +31,6 @@ public:
     int curScore = 0;
     bool bossStage = true;
 
-    Game(const std::string& path) : map(path) {}
-    
     void drawMap() {
         map.mapDraw();
     }
@@ -51,7 +49,7 @@ public:
                 
                 alien->updatePhysics(mapObjects);
                 for (const auto &bullet : bill.getBullets()) {
-                    alien->checkAlien(mapObjects, bill.getPosition(), bullet);
+                    alien->checkAlien(mapObjects, bill.getPosition(), bullet, curScore);
                 }
                 alien->updateAnimation();
             }
@@ -61,10 +59,6 @@ public:
     }
 
     void processInput(Player& bill, float leftBorder, float rightBorder) {
-
-        if (WindowShouldClose()) {
-            CloseWindow();
-        }
 
         if (IsKeyPressed(KEY_SPACE)) {
             bill.jump(map.getPlatforms());
@@ -106,8 +100,6 @@ public:
                     float deltaTime, std::vector<std::shared_ptr<Turret>> &turrets, std::vector<BulletVariant> &allBullets,
                     std::unique_ptr<HeliBoss> &boss, std::vector<std::shared_ptr<SpawnerAliens>> &spawnersAliens, GameCamera& gameCamera) {
 
-            std::cout << bill.getPosition().x << std::endl;
-
             updateSpawners(spawnersAliens, deltaTime, aliens, bill);
 
             updateAliens(aliens, bill, map.getPlatforms());
@@ -119,7 +111,6 @@ public:
             updateLedders(ledders, deltaTime, bill, allBullets);
 
             if (boss == nullptr && bill.getPosition().x >= 10020 && bossStage) {
-                std::cout << "ok" << " " << bill.getPosition().x;
                 boss = std::make_unique<HeliBoss>(Vector2 {8750, -1575});
             }
 
@@ -136,7 +127,6 @@ public:
             
             for (auto it = aliens.begin(); it != aliens.end();) {
                 if (!(*it)->isAlive()) {
-                    std::cout << "die" << std::endl;
                     it = aliens.erase(it);
                 } else {
                     ++it;
@@ -167,7 +157,7 @@ public:
         }
 
         for (auto it = granateThrowers.begin(); it != granateThrowers.end();) {
-            (*it)->checkDie(player.getBullets());
+            (*it)->checkDie(player.getBullets(), curScore);
             (*it)->update(deltaTime, allBullets, player); // Update turret state
             if (!(*it)->getAlive()) {
                 it = granateThrowers.erase(it);
@@ -229,7 +219,7 @@ public:
         }
 
         for (auto it = turrets.begin(); it != turrets.end();) {
-            (*it)->checkDie(player.getBullets());
+            (*it)->checkDie(player.getBullets(), curScore);
             (*it)->update(deltaTime, player, map.getPlatforms(), allBullets); // Update turret state
             if ((*it)->getDie()) {
                 it = turrets.erase(it);
@@ -399,122 +389,127 @@ public:
         }
     }
 
-};
+    int gameRun() {
+        // Initialization
+        //--------------------------------------------------------------------------------------  
 
-int gameRun() {
-    // Initialization
-    //--------------------------------------------------------------------------------------  
+        int frameDelay = 7; // Задержка между кадрами
+        int frameDelayCounter = 0;
 
-    int frameDelay = 7; // Задержка между кадрами
-    int frameDelayCounter = 0;
+        std::vector<BulletVariant> allBullets;
 
-    std::vector<BulletVariant> allBullets;
+        const int screenWidth = 900;
+        const int screenHeight = 700;
+        
+        map.initialization("resources/SuperContraMap.png");
+        Player bill(0, 200, "resources/Bill.png");
 
-    const int screenWidth = 900;
-    const int screenHeight = 700;
+        GameOverMenu gameOverMenu(hiScore, curScore);
+
+        std::vector<std::shared_ptr<Alien>> aliens;
+        std::vector<std::shared_ptr<Ledder>> ledders;
+        std::vector<std::shared_ptr<GranateThrower>> granateThrowers;
+        std::vector<std::shared_ptr<Turret>> turrets;
+        std::vector<std::shared_ptr<SpawnerAliens>> spawnersAliens;
+
+        //турели
+        //turrets.push_back(std::make_shared<Turret>(900.0f, 410.0f, 3.0f));
+        turrets.push_back(std::make_shared<Turret>(7630.0f, -770.0f, 2.0f));
+        turrets.push_back(std::make_shared<Turret>(8050.0f, -770.0f, 2.0f));
+        turrets.push_back(std::make_shared<Turret>(4025.0f, -10.0f, 2.0f));
     
-    Game game("resources/SuperContraMap.png");
-    Player bill(0, 200, "resources/Bill.png");
+        //снайперы
+        ledders.push_back(std::make_shared<Ledder>(1330, 130));
+        ledders.push_back(std::make_shared<Ledder>(1735, 130));
+        ledders.push_back(std::make_shared<Ledder>(2140, 130));
+        ledders.push_back(std::make_shared<Ledder>(2850, 50));
+        ledders.push_back(std::make_shared<Ledder>(5060, -680));
+        ledders.push_back(std::make_shared<Ledder>(7575, -1080));
 
-    GameOverMenu gameOverMenu(game.hiScore, game.curScore);
+        //метатели
+        granateThrowers.push_back(std::make_shared<GranateThrower>(5360, -680));
 
-    std::vector<std::shared_ptr<Alien>> aliens;
-    std::vector<std::shared_ptr<Ledder>> ledders;
-    std::vector<std::shared_ptr<GranateThrower>> granateThrowers;
-    std::vector<std::shared_ptr<Turret>> turrets;
-    std::vector<std::shared_ptr<SpawnerAliens>> spawnersAliens;
+        //спаунеры
+        spawnersAliens.push_back(std::make_shared<SpawnerAliens>(3760, -380));
+        spawnersAliens.push_back(std::make_shared<SpawnerAliens>(6950, -1100));
 
-    //турели
-    //turrets.push_back(std::make_shared<Turret>(900.0f, 410.0f, 3.0f));
-    turrets.push_back(std::make_shared<Turret>(7630.0f, -770.0f, 2.0f));
-    turrets.push_back(std::make_shared<Turret>(8050.0f, -770.0f, 2.0f));
-    turrets.push_back(std::make_shared<Turret>(4025.0f, -10.0f, 2.0f));
- 
-    //снайперы
-    ledders.push_back(std::make_shared<Ledder>(1330, 130));
-    ledders.push_back(std::make_shared<Ledder>(1735, 130));
-    ledders.push_back(std::make_shared<Ledder>(2140, 130));
-    ledders.push_back(std::make_shared<Ledder>(2850, 50));
-    ledders.push_back(std::make_shared<Ledder>(5060, -680));
-    ledders.push_back(std::make_shared<Ledder>(7575, -1080));
+        std::unique_ptr<HeliBoss> testBoss;
+        
+        GameCamera gameCamera(screenWidth, screenHeight);
 
-    //метатели
-    granateThrowers.push_back(std::make_shared<GranateThrower>(5360, -680));
+        SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+        //--------------------------------------------------------------------------------------
+        
+        float spawnDelay = 2.0f; // Задержка между спавном инопланетян (в кадрах)
+        float spawnCounter = 0.0f; // счетчик времени
+        int direction;
+        curScore = 0;
+        
 
-    //спаунеры
-    spawnersAliens.push_back(std::make_shared<SpawnerAliens>(3760, -380));
-    spawnersAliens.push_back(std::make_shared<SpawnerAliens>(6950, -1100));
+        // Main game loop
+        while (bill.getCOuntLives() > 0)    // Detect window close button or ESC key
+        {
+            // Update
+            //----------------------------------------------------------------------------------
 
-    std::unique_ptr<HeliBoss> testBoss;
-    
-    GameCamera gameCamera(screenWidth, screenHeight);
+            float deltaTime = GetFrameTime();
+            spawnCounter += deltaTime;
+            frameDelayCounter++;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
-    
-    float spawnDelay = 2.0f; // Задержка между спавном инопланетян (в кадрах)
-    float spawnCounter = 0.0f; // счетчик времени
-    int direction;
-
-    
-
-    // Main game loop
-    while (bill.getCOuntLives() > 0)    // Detect window close button or ESC key
-    {
-        // Update
-        //----------------------------------------------------------------------------------
-
-        gameOverMenu.updateScore(game.hiScore, game.curScore);
-        float deltaTime = GetFrameTime();
-        spawnCounter += deltaTime;
-        frameDelayCounter++;
-
-        if (spawnCounter >= spawnDelay) {
-            spawnCounter = 0.0f; // Сброс счетчика
-            spawnDelay = ((float) rand() / RAND_MAX) * 2 + 2;
-            direction = rand() % 2;
-            if (direction) {
-                aliens.push_back(std::make_shared<Alien>(bill.getPosition().x - 600, bill.getPosition().y, direction));
-            } else {
-                aliens.push_back(std::make_shared<Alien>(bill.getPosition().x + 900, bill.getPosition().y - 400, direction));
+            if (spawnCounter >= spawnDelay) {
+                spawnCounter = 0.0f; // Сброс счетчика
+                spawnDelay = ((float) rand() / RAND_MAX) * 2 + 2;
+                direction = rand() % 2;
+                if (direction) {
+                    aliens.push_back(std::make_shared<Alien>(bill.getPosition().x - 600, bill.getPosition().y, direction));
+                } else {
+                    aliens.push_back(std::make_shared<Alien>(bill.getPosition().x + 900, bill.getPosition().y - 400, direction));
+                }
             }
-        }
 
-        if (bill.getCOuntLives() <= 0 || bill.getPosition().x > 11050) {
-            return gameOverMenu.show();
-        }
-  
-        bill.isPlayerAlive(aliens, allBullets);
-        
-        game.processInput(bill, gameCamera.leftBorder, gameCamera.rightBorder);
-
-        game.deleteBullets(allBullets);
-
-        game.updateGame(bill, aliens, granateThrowers, ledders, deltaTime, turrets, allBullets, testBoss, spawnersAliens, gameCamera);
-        game.updateBullets(allBullets, bill);
-        game.updateBulletsAnimation(deltaTime, allBullets);
-        
-        bill.updateAnimation(deltaTime);
-        
-        gameCamera.setCameraTarget(bill.getPosition().x + bill.getWidth() / 2, bill.getPosition().y + bill.getHeight() / 2 - 140);
-        if (frameDelayCounter >= frameDelay) {
-        
-            bill.addCurFrame();
-            game.updateAliensFrames(aliens);
-            frameDelayCounter = 0;
+            if (bill.getCOuntLives() <= 0 || bill.getPosition().x > 11050) {
+                hiScore = hiScore >= curScore ? hiScore : curScore;
+                gameOverMenu.updateScore(hiScore, curScore);
+                return gameOverMenu.show();;
+            }
+    
+            bill.isPlayerAlive(aliens, allBullets);
             
-        }
-        //----------------------------------------------------------------------------------
+            processInput(bill, gameCamera.leftBorder, gameCamera.rightBorder);
 
-        // Draw
-        //----------------------------------------------------------------------------------
-        game.drawScene(bill, aliens, granateThrowers, ledders, gameCamera, turrets, allBullets, testBoss);
-        
-        //----------------------------------------------------------------------------------
+            deleteBullets(allBullets);
+
+            updateGame(bill, aliens, granateThrowers, ledders, deltaTime, turrets, allBullets, testBoss, spawnersAliens, gameCamera);
+            updateBullets(allBullets, bill);
+            updateBulletsAnimation(deltaTime, allBullets);
+            
+            bill.updateAnimation(deltaTime);
+            
+            gameCamera.setCameraTarget(bill.getPosition().x + bill.getWidth() / 2, bill.getPosition().y + bill.getHeight() / 2 - 140);
+            if (frameDelayCounter >= frameDelay) {
+            
+                bill.addCurFrame();
+                updateAliensFrames(aliens);
+                frameDelayCounter = 0;
+                
+            }
+            //----------------------------------------------------------------------------------
+
+            // Draw
+            //----------------------------------------------------------------------------------
+            drawScene(bill, aliens, granateThrowers, ledders, gameCamera, turrets, allBullets, testBoss);
+            
+            //----------------------------------------------------------------------------------
+        }
+
+        hiScore = hiScore >= curScore ? hiScore : curScore;
+        gameOverMenu.updateScore(hiScore, curScore);
+        return gameOverMenu.show();;
     }
 
-    return gameOverMenu.show();
-}
+};
+
+
 
 int main(void)
 {
@@ -526,15 +521,25 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "SuperContra");
 
+    Game game;
     MainMenu mainMenu;
+
+    int menu;
 
     while (enter) {
         if (enter == 1) {
-            mainMenu.show();
+            menu = mainMenu.show();
+            game.hiScore = 0;
         }
-        enter = gameRun();
+        
+        if (menu == 1) {
+            enter = game.gameRun();
+        } else {
+            enter = 0;
+        }
+        
     }
+
     return 0;
-    
 
 }  

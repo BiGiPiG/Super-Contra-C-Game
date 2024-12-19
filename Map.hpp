@@ -2,8 +2,8 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include "Platform.h"
-#include "Ladder.h"
+#include "Platform.hpp"
+#include "Ladder.hpp"
 #include "raylib.h"
 #include <memory>
 
@@ -13,7 +13,10 @@ private:
     Texture2D background;
 
 public:
-    Map(const std::string& path) {
+
+    Map() {};
+
+    void initialization(const std::string& path) {
         this->background = LoadTexture(path.c_str());
 
         if (background.id == 0) { // Проверка на успешную загрузку текстуры

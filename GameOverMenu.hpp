@@ -12,10 +12,7 @@ private:
     Rectangle textureRec = {0, 0, 900, 700};
 
 public:
-    GameOverMenu(int hiScore, int curScore) : hiScore(hiScore), curScore(curScore) {
-        // Конструктор может быть использован для инициализации переменных, если необходимо
-        gameOverMenu = LoadTexture("resources/GameOverMenu.png");
-    }
+    GameOverMenu(int hiScore, int curScore) : hiScore(hiScore), curScore(curScore) {}
 
     ~GameOverMenu() {
         UnloadTexture(gameOverMenu);
@@ -28,8 +25,9 @@ public:
     }
 
     int show() {
+        gameOverMenu = LoadTexture("resources/GameOverMenu.png");
         Font font = LoadFontEx("resources/Font.ttf", 20, NULL, 0);
-        while (!WindowShouldClose()) {
+        while (true) {
 
             
 
@@ -50,6 +48,7 @@ public:
             EndDrawing();
 
             if (IsKeyPressed(KEY_ENTER)) {
+                UnloadFont(font); 
                 if (currentFrame == 0) {
                     return 2;
                 } else {
@@ -62,7 +61,6 @@ public:
                 textureRec.x = gameOverMenu.width / countFrames * currentFrame;
             }
         }
-
-        UnloadFont(font); 
+        return -1;
     }
 };

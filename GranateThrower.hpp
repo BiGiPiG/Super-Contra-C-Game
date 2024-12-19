@@ -168,7 +168,7 @@ public:
     }
 
     //проверка состояния метателя
-    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets) {
+    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets, int &score) {
 
         if (isDying) {
             return;
@@ -177,6 +177,7 @@ public:
         if (!bullets.empty()) {
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
+                    score += 1000;
                     die();
                     return;
                 }

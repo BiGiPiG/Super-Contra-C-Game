@@ -1,7 +1,7 @@
 #pragma once
 #include "raylib.h"
-#include "Platform.h"
-#include "Ladder.h"
+#include "Platform.hpp"
+#include "Ladder.hpp"
 
 class Bullet {
 public:
