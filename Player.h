@@ -23,7 +23,7 @@ private:
     int currentRunUpFrame = 0;
     int currentRunDownFrame = 0;
     int currentDieFrame = 0;
-    int countLives = 5;
+    int countLives = 3;
     int deathFrames = 4;
 
 
@@ -177,10 +177,6 @@ public:
         currentFrame++;
     }
 
-    void setChangeStatShoot(bool flag) {
-        changeStatShoot = flag;
-    }
-
     void setLookDown(bool flag) {
         lookDown = flag;
     }
@@ -189,28 +185,8 @@ public:
         lookUp = flag;
     }
 
-    void setChangeFrame(bool flag) {
-        changeFrame = flag;
-    }
-
     void setShooting(bool flag) {
         isShooting = flag;
-    }
-
-    void addShootingFrame() {
-        currentShootFrame++;
-    }
-
-    int getShootFrame() {
-        return currentShootFrame;
-    }
-
-    void setLeftRun(bool flag) {
-        leftRun = flag;
-    }
-
-    void setRightRun(bool flag) {
-        rightRun = flag;
     }
 
     int getWidth() {
@@ -225,16 +201,8 @@ public:
         return position;
     }
 
-    bool getJumping() {
-        return isJumping;
-    }
-
     void setMoving(bool flag) {
         isMoving = flag;
-    }
-
-    bool getMoving() {
-        return isMoving;
     }
 
     ~Player() {
@@ -267,7 +235,7 @@ public:
         return false;
     }
 
-    void runLeft(const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
+    void runLeft(const std::vector<std::shared_ptr<MapObject>> &mapObjects, float leftBorder) {
 
         if (isDying) {
             return;
@@ -275,6 +243,7 @@ public:
 
         leftRun = true;
         rightRun = false;
+        float beginPos = position.x;
 
         if (isOnGround(mapObjects) && !isOnLadder(mapObjects)) {
             
@@ -308,9 +277,15 @@ public:
         if (textureRec.width > 0) {
             textureRec.width = -textureRec.width;
         }
+
+        while (hitBox.x < leftBorder) {
+            position.x = beginPos;
+            hitBox.x = position.x + 25;
+        }
+
     }
 
-    void runRight(const std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    void runRight(const std::vector<std::shared_ptr<MapObject>> mapObjects, float rightBorder) {
 
         if (isDying) {
             return;
@@ -318,6 +293,7 @@ public:
 
         rightRun = true;
         leftRun = false;
+        float beginPos = position.x;
         
         if (isOnGround(mapObjects) && !isOnLadder(mapObjects)) {
             position.x += velocity.x;
@@ -354,6 +330,11 @@ public:
 
         if (textureRec.width < 0) {
             textureRec.width = -textureRec.width;
+        }
+
+        while (hitBox.x > rightBorder) {
+            position.x = beginPos;
+            hitBox.x = position.x + 25;
         }
     }
 
@@ -483,7 +464,7 @@ public:
         hitBox.x = position.x + 25; // Обновление хитбокса по X
     }
 
-    void draw() const {
+    void draw(Vector2 pos) const {
         if (isBlinking) {
             // Определяем прозрачность на основе текущего мигания
             Color color = (currentBlink % 2 == 0) ? WHITE : (Color){255, 255, 255, 0}; // Прозрачность на четных кадрах
@@ -493,12 +474,12 @@ public:
             DrawTextureRec(playerTexture, textureRec, position, WHITE); // Обычная отрисовка
         }
         drawBullets();
-        drawLives();
+        drawLives(pos);
     }
 
-    void drawLives() const {
+    void drawLives(Vector2 pos) const {
         for (int i = 0; i < countLives; i++) {
-            DrawTexture(lifeIcon, position.x - 400 + 10 + i * (lifeIcon.width + 5), position.y - 410, WHITE); // Отрисовка иконок жизней
+            DrawTexture(lifeIcon, pos.x - 430 + 10 + i * (lifeIcon.width + 5), pos.y - 320, WHITE); // Отрисовка иконок жизней
         }
     }
 
@@ -586,6 +567,7 @@ public:
             for (const auto &alien : aliens) {
                 if (!alien->getIsHidden() && CheckCollisionRecs(hitBox, alien->getHitBox())) {
                     die();
+                    countLives--;
                     return;
                 }
             }
@@ -596,19 +578,19 @@ public:
                 if (auto granate = std::get_if<std::shared_ptr<Granate>>(&bullet)) {
                     if (CheckCollisionRecs(hitBox, (*granate)->hitBox)) {
                         die();
-                        countLives -= 1;
+                        countLives--;
                         return;
                     }
                 } else if (auto ledderBullet = std::get_if<std::shared_ptr<LedderBullet>>(&bullet)) {
                     if (CheckCollisionRecs(hitBox, (*ledderBullet)->hitBox)) {
                         die();
-                        countLives -= 1;
+                        countLives--;
                         return;
                     }
                 } else if (auto turretBullet = std::get_if<std::shared_ptr<TurretBullet>>(&bullet)) {
                     if (CheckCollisionRecs(hitBox, (*turretBullet)->hitBox)) {
                         die();
-                        countLives -= 1;
+                        countLives--;
                         return;
                     }
                 }

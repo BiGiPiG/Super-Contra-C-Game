@@ -169,6 +169,11 @@ public:
 
     //проверка состояния метателя
     void checkDie(std::vector<std::shared_ptr<Bullet>> bullets) {
+
+        if (isDying) {
+            return;
+        }
+        
         if (!bullets.empty()) {
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {

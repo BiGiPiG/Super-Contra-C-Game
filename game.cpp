@@ -15,6 +15,8 @@
 #include "GameOverMenu.hpp"
 #include "HeliBoss.hpp"
 
+#include <ctime>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <variant>
@@ -25,6 +27,9 @@ using BulletVariant = std::variant<std::shared_ptr<LedderBullet>, std::shared_pt
 class Game {
 public:
     Map map;
+    int hiScore = 0;
+    int curScore = 0;
+    bool bossStage = true;
 
     Game(const std::string& path) : map(path) {}
     
@@ -46,7 +51,7 @@ public:
                 
                 alien->updatePhysics(mapObjects);
                 for (const auto &bullet : bill.getBullets()) {
-                    alien->checkAlien(mapObjects, bill.getPosition(), bullet->hitBox);
+                    alien->checkAlien(mapObjects, bill.getPosition(), bullet);
                 }
                 alien->updateAnimation();
             }
@@ -55,7 +60,12 @@ public:
 
     }
 
-    void processInput(Player& bill) {
+    void processInput(Player& bill, float leftBorder, float rightBorder) {
+
+        if (WindowShouldClose()) {
+            CloseWindow();
+        }
+
         if (IsKeyPressed(KEY_SPACE)) {
             bill.jump(map.getPlatforms());
         }
@@ -79,10 +89,10 @@ public:
         }
         
         if (IsKeyDown(KEY_RIGHT)) {
-            bill.runRight(map.getPlatforms());
+            bill.runRight(map.getPlatforms(), rightBorder);
             bill.setMoving(true);
         } else if (IsKeyDown(KEY_LEFT)) {
-            bill.runLeft(map.getPlatforms());
+            bill.runLeft(map.getPlatforms(), leftBorder);
             bill.setMoving(true);
         } else {
             bill.setMoving(false);
@@ -90,42 +100,63 @@ public:
     }
 
     // Обновление состояния игры
-void updateGame(Player& bill, std::vector<std::shared_ptr<Alien>>& aliens,
-                std::vector<std::shared_ptr<GranateThrower>> &granateThrowers,
-                std::vector<std::shared_ptr<Ledder>> &ledders,
-                float deltaTime, std::vector<std::shared_ptr<Turret>> &turrets, std::vector<BulletVariant> &allBullets,
-                std::unique_ptr<HeliBoss> &boss) {
+    void updateGame(Player& bill, std::vector<std::shared_ptr<Alien>>& aliens,
+                    std::vector<std::shared_ptr<GranateThrower>> &granateThrowers,
+                    std::vector<std::shared_ptr<Ledder>> &ledders,
+                    float deltaTime, std::vector<std::shared_ptr<Turret>> &turrets, std::vector<BulletVariant> &allBullets,
+                    std::unique_ptr<HeliBoss> &boss, std::vector<std::shared_ptr<SpawnerAliens>> &spawnersAliens, GameCamera& gameCamera) {
 
-        updateAliens(aliens, bill, map.getPlatforms());
+            std::cout << bill.getPosition().x << std::endl;
 
-        updateGranateThrowers(granateThrowers, deltaTime, allBullets, bill);
+            updateSpawners(spawnersAliens, deltaTime, aliens, bill);
 
-        updateTurrets(turrets, deltaTime, bill, allBullets);
+            updateAliens(aliens, bill, map.getPlatforms());
 
-        updateLedders(ledders, deltaTime, bill, allBullets);
+            updateGranateThrowers(granateThrowers, deltaTime, allBullets, bill);
 
+            updateTurrets(turrets, deltaTime, bill, allBullets);
 
-        /*
-        if (boss != nullptr && !boss->getIsActive()) {
-            boss.reset();
-        }
+            updateLedders(ledders, deltaTime, bill, allBullets);
 
-        if (boss != nullptr) {
-            boss->update(deltaTime, bill, allBullets, aliens);
-            boss->updateAnimation(deltaTime);
-        }
-        */
+            if (boss == nullptr && bill.getPosition().x >= 10020 && bossStage) {
+                std::cout << "ok" << " " << bill.getPosition().x;
+                boss = std::make_unique<HeliBoss>(Vector2 {8750, -1575});
+            }
+
+            if (boss != nullptr && !boss->getIsActive()) {
+                boss.reset();
+                gameCamera.rightBorder = 11270;
+                bossStage = false;
+            }
+
+            if (boss != nullptr) {
+                boss->update(deltaTime, bill, allBullets, aliens);
+                boss->updateAnimation(deltaTime);
+            }
+            
+            for (auto it = aliens.begin(); it != aliens.end();) {
+                if (!(*it)->isAlive()) {
+                    std::cout << "die" << std::endl;
+                    it = aliens.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+
+            bill.update(map.getPlatforms());
         
-        for (auto it = aliens.begin(); it != aliens.end();) {
-            if (!(*it)->isAlive()) {
-                it = aliens.erase(it);
-            } else {
+    }
+
+    void updateSpawners(std::vector<std::shared_ptr<SpawnerAliens>> &spawnersAliens, float deltaTime, 
+        std::vector<std::shared_ptr<Alien>>& aliens, Player &player) {
+        for (auto it = spawnersAliens.begin(); it != spawnersAliens.end();) {
+            if ((*it)->getIsAlive()) {
+                (*it)->update(deltaTime, aliens, player);
                 ++it;
+            } else {
+                it = spawnersAliens.erase(it);
             }
         }
-
-        bill.update(map.getPlatforms());
-    
     }
 
     void updateGranateThrowers(std::vector<std::shared_ptr<GranateThrower>> &granateThrowers,
@@ -167,7 +198,7 @@ void updateGame(Player& bill, std::vector<std::shared_ptr<Alien>>& aliens,
         }
 
         for (auto it = ledders.begin(); it != ledders.end();) {
-            (*it)->checkDie(player.getBullets());
+            (*it)->checkDie(player.getBullets(), curScore);
             (*it)->update(player.getPosition(), map.getPlatforms(), deltaTime, allBullets); // Update turret state
             if (!(*it)->getAlive()) {
                 it = ledders.erase(it);
@@ -251,21 +282,28 @@ void updateGame(Player& bill, std::vector<std::shared_ptr<Alien>>& aliens,
 
         drawLedders(ledders);
 
-        /*
         if (boss != nullptr) {
             boss->draw();
         }
-        */
 
-        bill.draw();
+        bill.draw(gameCamera.camera.target);
 
         drawBullets(bullets);
 
         
         
         //DrawTriangleLines(Vector2{3280, 400}, Vector2{4315, 400}, Vector2{4315, -140}, BLUE); 
-        DrawTriangleLines( Vector2{4185, 130}, Vector2{4885, 130}, Vector2{4885, -220}, BLUE);
-        DrawRectangleLines(4885, -220, 900, 100, BLUE);
+        /*
+        DrawRectangleLines(0, 540, 2595, 100, BLUE);
+        DrawTriangleLines( Vector2{2595, 540}, Vector2{3385, 540}, Vector2{3385, 130}, BLUE);
+        DrawRectangleLines(3375, 130, 810, 100, BLUE);
+        DrawTriangleLines(Vector2{4185, 130}, Vector2{4885, 130}, Vector2{4885, -220}, BLUE);
+        DrawRectangleLines(4875, -220, 910, 100, BLUE);
+        DrawTriangleLines( Vector2{5785, -220}, Vector2{6570, -220}, Vector2{6570, -620}, BLUE);
+        DrawRectangleLines(6565, -620, 1610, 100, BLUE);
+        DrawTriangleLines( Vector2{8175, -620}, Vector2{8895, -620}, Vector2{8895, -970}, BLUE);
+        DrawRectangleLines(8895, -970, 2500, 100, BLUE);
+        */
         EndMode2D(); 
         EndDrawing();
     }
@@ -365,7 +403,7 @@ void updateGame(Player& bill, std::vector<std::shared_ptr<Alien>>& aliens,
 
 int gameRun() {
     // Initialization
-    //--------------------------------------------------------------------------------------   
+    //--------------------------------------------------------------------------------------  
 
     int frameDelay = 7; // Задержка между кадрами
     int frameDelayCounter = 0;
@@ -378,74 +416,83 @@ int gameRun() {
     Game game("resources/SuperContraMap.png");
     Player bill(0, 200, "resources/Bill.png");
 
+    GameOverMenu gameOverMenu(game.hiScore, game.curScore);
+
     std::vector<std::shared_ptr<Alien>> aliens;
     std::vector<std::shared_ptr<Ledder>> ledders;
     std::vector<std::shared_ptr<GranateThrower>> granateThrowers;
     std::vector<std::shared_ptr<Turret>> turrets;
+    std::vector<std::shared_ptr<SpawnerAliens>> spawnersAliens;
 
     //турели
-    turrets.push_back(std::make_shared<Turret>(900.0f, 410.0f, 3.0f));
-
+    //turrets.push_back(std::make_shared<Turret>(900.0f, 410.0f, 3.0f));
+    turrets.push_back(std::make_shared<Turret>(7630.0f, -770.0f, 2.0f));
+    turrets.push_back(std::make_shared<Turret>(8050.0f, -770.0f, 2.0f));
+    turrets.push_back(std::make_shared<Turret>(4025.0f, -10.0f, 2.0f));
+ 
     //снайперы
-    ledders.push_back(std::make_shared<Ledder>(500, 200));
+    ledders.push_back(std::make_shared<Ledder>(1330, 130));
+    ledders.push_back(std::make_shared<Ledder>(1735, 130));
+    ledders.push_back(std::make_shared<Ledder>(2140, 130));
+    ledders.push_back(std::make_shared<Ledder>(2850, 50));
+    ledders.push_back(std::make_shared<Ledder>(5060, -680));
+    ledders.push_back(std::make_shared<Ledder>(7575, -1080));
 
     //метатели
     granateThrowers.push_back(std::make_shared<GranateThrower>(5360, -680));
 
+    //спаунеры
+    spawnersAliens.push_back(std::make_shared<SpawnerAliens>(3760, -380));
+    spawnersAliens.push_back(std::make_shared<SpawnerAliens>(6950, -1100));
 
-    //std::unique_ptr<GranateThrower> testThrower = std::make_unique<GranateThrower>(5360, -680, "resources/GranateThrower.png");
-    //std::unique_ptr<Ledder> testLedder = std::make_unique<Ledder>(500, 200);
-    //std::unique_ptr<Turret> turret = std::make_unique<Turret>(900.0f, 410.0f, 3.0f);
-    std::unique_ptr<HeliBoss> testBoss = std::make_unique<HeliBoss>(Vector2 {100, 0});
-
-    SpawnerAliens spawner(2.0f, 0, 200);
+    std::unique_ptr<HeliBoss> testBoss;
     
     GameCamera gameCamera(screenWidth, screenHeight);
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
     
-    int spawnDelay = 120; // Задержка между спавном инопланетян (в кадрах)
-    int spawnCounter = 0; // Счетчик кадров
-    int spawnGranates = 0;
+    float spawnDelay = 2.0f; // Задержка между спавном инопланетян (в кадрах)
+    float spawnCounter = 0.0f; // счетчик времени
+    int direction;
 
-    GameOverMenu gameOverMenu;
+    
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (bill.getCOuntLives() > 0)    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
+
+        gameOverMenu.updateScore(game.hiScore, game.curScore);
         float deltaTime = GetFrameTime();
+        spawnCounter += deltaTime;
         frameDelayCounter++;
 
-        spawnCounter++;
         if (spawnCounter >= spawnDelay) {
-            //aliens.push_back(std::make_shared<Alien>(bill.getPosition().x - 500, bill.getPosition().y, "resources/AlienRunner.png"));
-            spawnCounter = 0; // Сброс счетчика
+            spawnCounter = 0.0f; // Сброс счетчика
+            spawnDelay = ((float) rand() / RAND_MAX) * 2 + 2;
+            direction = rand() % 2;
+            if (direction) {
+                aliens.push_back(std::make_shared<Alien>(bill.getPosition().x - 600, bill.getPosition().y, direction));
+            } else {
+                aliens.push_back(std::make_shared<Alien>(bill.getPosition().x + 900, bill.getPosition().y - 400, direction));
+            }
         }
 
-        if (bill.getCOuntLives() <= 0) {
+        if (bill.getCOuntLives() <= 0 || bill.getPosition().x > 11050) {
             return gameOverMenu.show();
         }
   
         bill.isPlayerAlive(aliens, allBullets);
         
-        game.processInput(bill);
-        
-        //spawner.update(deltaTime);
-        //auto aliens = spawner.getAliens();
+        game.processInput(bill, gameCamera.leftBorder, gameCamera.rightBorder);
+
         game.deleteBullets(allBullets);
 
-        game.updateGame(bill, aliens, granateThrowers, ledders, deltaTime, turrets, allBullets, testBoss);
+        game.updateGame(bill, aliens, granateThrowers, ledders, deltaTime, turrets, allBullets, testBoss, spawnersAliens, gameCamera);
         game.updateBullets(allBullets, bill);
         game.updateBulletsAnimation(deltaTime, allBullets);
-        
-        
-        if (spawnGranates >= spawnCounter) {
-            spawnGranates = 0;
-        }
-        
         
         bill.updateAnimation(deltaTime);
         
@@ -466,10 +513,7 @@ int gameRun() {
         //----------------------------------------------------------------------------------
     }
 
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
+    return gameOverMenu.show();
 }
 
 int main(void)
@@ -478,15 +522,19 @@ int main(void)
     const int screenWidth = 900;
     const int screenHeight = 700;
 
+    srand(time(NULL));
+
     InitWindow(screenWidth, screenHeight, "SuperContra");
 
     MainMenu mainMenu;
-    
 
     while (enter) {
-        mainMenu.show();
+        if (enter == 1) {
+            mainMenu.show();
+        }
         enter = gameRun();
     }
     return 0;
-}
+    
 
+}  

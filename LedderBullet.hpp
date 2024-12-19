@@ -83,8 +83,7 @@ public:
             hitBox.y = position.y;
 
             // Деактивируем пулю, если она выходит за пределы экрана
-            if (position.x < 0 || position.x > playerPos.x + GetScreenWidth() 
-            || position.y > playerPos.y + GetScreenHeight()) {
+            if (position.x < 0 || abs(playerPos.x - position.x) >= 500) {
                 isActive = false;
             }
             if (isGround(mapObjects) || isLadder(mapObjects)) {

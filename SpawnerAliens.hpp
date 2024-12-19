@@ -2,41 +2,64 @@
 #include "Alien.h"
 #include <vector>
 #include <memory>
+#include <iostream>
 
 class SpawnerAliens {
 private:
-    std::vector<std::shared_ptr<Alien>> aliens; // Вектор для хранения инопланетян
     float spawnInterval; // Интервал спавна инопланетян
     float elapsedTime; // Время, прошедшее с последнего спавна
     float spawnX; // Координата X для спавна
     float spawnY; // Координата Y для спавна
+    bool isAlive = true;
+
+    bool timeBetween = false;
+    int countSpawnAliens = 0;
+    int aliensPerSpawn; // Количество инопланетян, которые будут созданы за один раз
+    float timeBetweenQueue; // Время между очередями спавна
+    float queueElapsedTime; // Время, прошедшее с последнего спавна очереди
 
 public:
-    SpawnerAliens(float interval, float x, float y)
-        : spawnInterval(interval), spawnX(x), spawnY(y), elapsedTime(0) {}
+    SpawnerAliens(float x = 0.0f, float y = 0.0f, float interval = 0.2f, int perSpawn = 2, float queueTime = 3.0f)
+        : spawnInterval(interval), spawnX(x), spawnY(y), elapsedTime(0), aliensPerSpawn(perSpawn), timeBetweenQueue(queueTime), queueElapsedTime(0)  {}
 
-    void update(float deltaTime) {
+    bool getIsAlive() {
+        return isAlive;
+    }
+
+    void update(float deltaTime, std::vector<std::shared_ptr<Alien>> &aliens, Player &player) {
+
         elapsedTime += deltaTime; // Увеличиваем прошедшее время
+        
 
-        if (elapsedTime >= spawnInterval) {
-            // Создаем двух новых инопланетян и добавляем их в вектор
-            aliens.push_back(std::make_shared<Alien>(spawnX, spawnY, true));
-            aliens.push_back(std::make_shared<Alien>(spawnX + 60, spawnY, true)); // Спавн второго инопланетянина немного правее
-            elapsedTime = 0; // Сбрасываем таймер
+        bool isInSpawnRange = player.getPosition().x >= spawnX - 500 && player.getPosition().x <= spawnX + 500;
+        //std::cout << isInSpawnRange << std::endl;
+
+        if (timeBetween) {
+            queueElapsedTime += deltaTime; // Увеличиваем время с последнего спавна очереди
+            if (queueElapsedTime >= timeBetweenQueue) {
+                countSpawnAliens = 0;
+                queueElapsedTime = 0.0f;
+            }
+        }
+
+        if (isInSpawnRange) {
+            if (elapsedTime >= spawnInterval) {
+
+                elapsedTime = 0.0f; // Сбрасываем таймер интервала спавна
+
+                if (countSpawnAliens < aliensPerSpawn) {
+                    countSpawnAliens++;
+                    bool flag = player.getPosition().x >= spawnX; // Определение направления инопланетян
+                    aliens.push_back(std::make_shared<Alien>(spawnX, spawnY, flag)); // Спавн нескольких инопланетян
+                    timeBetween = false;
+                } else {
+                    timeBetween = true;
+                }
+            }
+        }
+
+        if (player.getPosition().x >= spawnX + 500) {
+            isAlive = false;
         }
     }
-
-    const std::vector<std::shared_ptr<Alien>>& getAliens() const {
-        return aliens; // Возвращаем вектор инопланетян
-    }
-
-    void clearDeadAliens() {
-        // Удаляем мертвых инопланетян из вектора
-        aliens.erase(std::remove_if(aliens.begin(), aliens.end(),
-            [](const std::shared_ptr<Alien>& alien) { return !alien->isAlive(); }), aliens.end());
-    }
 };
-
-/*
-    добавить обновление глобального вектора, выбор направления и сделать очередь
-*/

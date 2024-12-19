@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include <vector>
+#include <cmath>
 
 class Alien {
 private:
@@ -245,14 +246,17 @@ public:
         }
     }
 
-    void checkAlien(std::vector<std::shared_ptr<MapObject>> mapObjects, Vector2 playerPos, const Rectangle &bullet) {
+    void checkAlien(std::vector<std::shared_ptr<MapObject>> mapObjects, Vector2 playerPos, std::shared_ptr<Bullet> bullet) {
 
-        // Деактивируем пулю, если она выходит за пределы экрана
-        if (position.x < 0 || position.x > playerPos.x + GetScreenWidth() || 
-            position.y > playerPos.y + GetScreenHeight()) {
+        if (isHidden) {
+            return;
+        }
+
+        if (position.x < 0 || abs(position.x - playerPos.x) >= 1000.0f) {
             isActive = false;
         }
-        if (CheckCollisionRecs(hitBox, bullet)) {
+        if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
+            bullet->isHidden = true;
             isHidden = true;
             velocity = {0, 0};
         }

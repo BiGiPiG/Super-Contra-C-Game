@@ -96,7 +96,7 @@ public:
     void update(float deltaTime, Player &player, std::vector<BulletVariant> &bullets,
                 std::vector<std::shared_ptr<Alien>> &aliens) {
 
-        if (isDying && position.y >= 300) {
+        if (isDying && position.y >= startPos.y + 300) {
             isActive = false;
         }
 
