@@ -69,7 +69,7 @@ public:
             || position.y > playerPos.y + GetScreenHeight()) {
                 isHidden = true;
             }
-            if (isGround(mapObjects) || isLadder(mapObjects)) {
+            if ((isGround(mapObjects) || isLadder(mapObjects)) && velocity.y >= 0) {
                 isHidden = true;
             }
         }

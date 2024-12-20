@@ -23,7 +23,7 @@ private:
     int currentRunUpFrame = 0;
     int currentRunDownFrame = 0;
     int currentDieFrame = 0;
-    int countLives = 3;
+    int countLives = 15;
     int deathFrames = 4;
 
 
@@ -41,7 +41,7 @@ private:
     float xVelocity = 5;
     float yVelocity = 0;
     float gravity = 0.5;
-    float jumpHeight = 15;
+    float jumpHeight = 14;
     float bulletSpeed = 20.0f; // Скорость пулиg
     float frameTimer = 0.0f;
     float frameSpeed = 0.2f;

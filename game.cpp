@@ -118,6 +118,7 @@ public:
                 boss.reset();
                 gameCamera.rightBorder = 11270;
                 bossStage = false;
+                curScore += 50000;
             }
 
             if (boss != nullptr) {
@@ -283,8 +284,10 @@ public:
         
         
         //DrawTriangleLines(Vector2{3280, 400}, Vector2{4315, 400}, Vector2{4315, -140}, BLUE); 
+        
+        //DrawRectangleLines(6760, -950, 450, 2, BLUE);
+
         /*
-        DrawRectangleLines(0, 540, 2595, 100, BLUE);
         DrawTriangleLines( Vector2{2595, 540}, Vector2{3385, 540}, Vector2{3385, 130}, BLUE);
         DrawRectangleLines(3375, 130, 810, 100, BLUE);
         DrawTriangleLines(Vector2{4185, 130}, Vector2{4885, 130}, Vector2{4885, -220}, BLUE);
@@ -433,7 +436,7 @@ public:
         spawnersAliens.push_back(std::make_shared<SpawnerAliens>(3760, -380));
         spawnersAliens.push_back(std::make_shared<SpawnerAliens>(6950, -1100));
 
-        std::unique_ptr<HeliBoss> testBoss;
+        std::unique_ptr<HeliBoss> heliBoss;
         
         GameCamera gameCamera(screenWidth, screenHeight);
 
@@ -449,6 +452,9 @@ public:
         // Main game loop
         while (bill.getCOuntLives() > 0)    // Detect window close button or ESC key
         {
+            if (WindowShouldClose()) {
+                break;
+            }
             // Update
             //----------------------------------------------------------------------------------
 
@@ -479,7 +485,7 @@ public:
 
             deleteBullets(allBullets);
 
-            updateGame(bill, aliens, granateThrowers, ledders, deltaTime, turrets, allBullets, testBoss, spawnersAliens, gameCamera);
+            updateGame(bill, aliens, granateThrowers, ledders, deltaTime, turrets, allBullets, heliBoss, spawnersAliens, gameCamera);
             updateBullets(allBullets, bill);
             updateBulletsAnimation(deltaTime, allBullets);
             
@@ -497,7 +503,7 @@ public:
 
             // Draw
             //----------------------------------------------------------------------------------
-            drawScene(bill, aliens, granateThrowers, ledders, gameCamera, turrets, allBullets, testBoss);
+            drawScene(bill, aliens, granateThrowers, ledders, gameCamera, turrets, allBullets, heliBoss);
             
             //----------------------------------------------------------------------------------
         }
