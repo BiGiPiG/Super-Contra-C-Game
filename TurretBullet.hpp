@@ -71,7 +71,7 @@ public:
             || position.y > playerPos.y + GetScreenHeight()) {
                 isActive = false;
             }
-            if (isGround(mapObjects) || isLadder(mapObjects)) {
+            if (isGround(mapObjects) || isLadder(mapObjects) || playerPos.x - position.x >= 600) {
                 isActive = false;
             }
         }

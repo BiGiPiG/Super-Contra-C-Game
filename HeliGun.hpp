@@ -77,7 +77,7 @@ public:
         if (!bullets.empty()) {
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
-                    hp--;
+                    hp -= bullet->damage;
                     bullet->isHidden = true;
                     if (hp <= 0) {
                         isExplosion = true;

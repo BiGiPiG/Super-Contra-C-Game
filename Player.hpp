@@ -6,15 +6,20 @@
 #include "LedderBullet.hpp"
 #include "Granate.hpp"
 #include "TurretBullet.hpp"
+#include "Bonus.hpp"
 
 #include <variant>
 
 using BulletVariant = std::variant<std::shared_ptr<LedderBullet>, std::shared_ptr<TurretBullet>, std::shared_ptr<Granate>>;
 
+enum TypeOfShooting { SHOOTTYPE_1, SHOOTTYPE_2 };
+
 class Player {
 private:
 
     std::vector<std::shared_ptr<Bullet>> bullets; // Вектор для хранения пуль
+    TypeOfShooting typeOfShooting = SHOOTTYPE_1;
+
 
     int countFrameRun = 7;
     
@@ -23,7 +28,7 @@ private:
     int currentRunUpFrame = 0;
     int currentRunDownFrame = 0;
     int currentDieFrame = 0;
-    int countLives = 15;
+    int countLives = 3;
     int deathFrames = 4;
 
 
@@ -59,7 +64,6 @@ private:
     bool changeFrame = false;
     bool lookUp = false;
     bool lookDown = false;
-    bool changeStatShoot = false;
     bool isAlive = true;
     bool isDying = false;
 
@@ -137,6 +141,7 @@ private:
     void die() {
         isDying = true; // Устанавливаем флаг смерти
         currentBlink = 0; // Сброс счетчика миганий
+        typeOfShooting = SHOOTTYPE_1;
     }
 
     void updateBlinking(float deltaTime) {
@@ -259,7 +264,6 @@ public:
             hitBox.y = 38.0f + position.y;
            
         } else if (isOnLadder(mapObjects)) {
-
             position.x -= velocity.x;
             hitBox.x = 25 + position.x;
             position.y += 2.6; // Смещение по Y при нахождении на лестнице
@@ -527,7 +531,12 @@ public:
             }
         }
         //float bulletDirectionY = lookUp ? -bulletSpeed : lookDown ? bulletSpeed : 0;
-        bullets.push_back(std::make_shared<Bullet>(bulletPosX, bulletPosY, bulletDirectionX, bulletDirectionY));
+        if (typeOfShooting == SHOOTTYPE_1) {
+            bullets.push_back(std::make_shared<Bullet>(bulletPosX, bulletPosY, bulletDirectionX, bulletDirectionY, 1));
+        } else {
+            bullets.push_back(std::make_shared<Bullet>(bulletPosX, bulletPosY, bulletDirectionX, bulletDirectionY, 3));
+        }
+        
     
     }
 
@@ -594,6 +603,25 @@ public:
                         return;
                     }
                 }
+            }
+        }
+    }
+
+    void checkBonus(std::vector<std::shared_ptr<Bonus>> &bonuses) {
+
+        if (bonuses.empty()) {
+            return;
+        }
+
+        for (auto &bonus : bonuses) {
+            if (CheckCollisionRecs(hitBox, (*bonus).getHitBox())) {
+                std::cout << "bonus" << std::endl;
+                if ((*bonus).getType() == TYPE_1) {
+                    countLives++;
+                } else {
+                    typeOfShooting = SHOOTTYPE_2;
+                }
+                (*bonus).setAlive();
             }
         }
     }

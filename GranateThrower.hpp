@@ -92,8 +92,13 @@ private:
     }
 
 public:
+
     bool getAlive() {
         return isAlive;
+    }
+
+    Vector2 getPosition() {
+        return position;
     }
 
     GranateThrower(float startX, float startY) {

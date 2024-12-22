@@ -9,6 +9,7 @@ public:
     float bulletSize = 32.0f;
     int currentFrameShoot = 0;
     int countFrame = 4;
+    int damage = 1;
 
     Vector2 position;
     Vector2 velocity;
@@ -43,7 +44,8 @@ public:
         return false;
     }
 
-    Bullet(float startX, float startY, float speedX, float speedY) {
+    Bullet(float startX, float startY, float speedX, float speedY,int damage) {
+        this->damage = damage;
         position = { startX, startY };
         velocity = { speedX, speedY };
         hitBox = { position.x, position.y, bulletSize, bulletSize}; // Размеры пули

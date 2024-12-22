@@ -1,4 +1,5 @@
 #include "raylib.h"
+
 #include "Map.hpp"
 #include "Player.hpp"
 #include "Bullet.hpp"
@@ -14,6 +15,7 @@
 #include "MainMenu.hpp"
 #include "GameOverMenu.hpp"
 #include "HeliBoss.hpp"
+#include "Bonus.hpp"
 
 #include <ctime>
 #include <cstdlib>
@@ -58,7 +60,7 @@ public:
 
     }
 
-    void processInput(Player& bill, float leftBorder, float rightBorder) {
+    void processInput(Player& bill, float leftBorder, float rightBorder, Sound shootSound) {
 
         if (IsKeyPressed(KEY_SPACE)) {
             bill.jump(map.getPlatforms());
@@ -66,6 +68,7 @@ public:
 
         if (IsKeyPressed(KEY_F)) { // Если нажата клавиша A для прыжка
             bill.shoot(); // Вызываем метод прыжка у игрока
+            PlaySound(shootSound);
             bill.setShooting(true);
             //bill.setShooting(false);
         } 
@@ -96,9 +99,10 @@ public:
     // Обновление состояния игры
     void updateGame(Player& bill, std::vector<std::shared_ptr<Alien>>& aliens,
                     std::vector<std::shared_ptr<GranateThrower>> &granateThrowers,
-                    std::vector<std::shared_ptr<Ledder>> &ledders,
-                    float deltaTime, std::vector<std::shared_ptr<Turret>> &turrets, std::vector<BulletVariant> &allBullets,
-                    std::unique_ptr<HeliBoss> &boss, std::vector<std::shared_ptr<SpawnerAliens>> &spawnersAliens, GameCamera& gameCamera) {
+                    std::vector<std::shared_ptr<Ledder>> &ledders, float deltaTime, 
+                    std::vector<std::shared_ptr<Turret>> &turrets, std::vector<BulletVariant> &allBullets,
+                    std::unique_ptr<HeliBoss> &boss, std::vector<std::shared_ptr<SpawnerAliens>> &spawnersAliens, 
+                    GameCamera& gameCamera, std::vector<std::shared_ptr<Bonus>> &bonuses, Music &music) {
 
             updateSpawners(spawnersAliens, deltaTime, aliens, bill);
 
@@ -110,8 +114,16 @@ public:
 
             updateLedders(ledders, deltaTime, bill, allBullets);
 
+            updateBonuses(bonuses, deltaTime, bill);
+
             if (boss == nullptr && bill.getPosition().x >= 10020 && bossStage) {
                 boss = std::make_unique<HeliBoss>(Vector2 {8750, -1575});
+
+                // Заменяем музыку при появлении босса
+                StopMusicStream(music); // Остановка текущей музыки
+                UnloadMusicStream(music); // Освобождение памяти текущей музыки
+                music = LoadMusicStream("resources/HeliSound.ogg"); // Загрузка новой музыки
+                PlayMusicStream(music); // Воспроизведение новой музыки
             }
 
             if (boss != nullptr && !boss->getIsActive()) {
@@ -119,6 +131,11 @@ public:
                 gameCamera.rightBorder = 11270;
                 bossStage = false;
                 curScore += 50000;
+
+                StopMusicStream(music); // Остановка текущей музыки
+                UnloadMusicStream(music); // Освобождение памяти текущей музыки
+                music = LoadMusicStream("resources/BackgroundMusic.ogg"); // Загрузка обычной музыки
+                PlayMusicStream(music); // Воспроизведение обычной музыки
             }
 
             if (boss != nullptr) {
@@ -135,7 +152,42 @@ public:
             }
 
             bill.update(map.getPlatforms());
+            bill.checkBonus(bonuses);
         
+    }
+
+    void updateBonuses(std::vector<std::shared_ptr<Bonus>> &bonuses, float deltaTime, Player &player) {
+       
+        if (bonuses.empty()) {
+            return;
+        }
+
+        for (auto it = bonuses.begin(); it != bonuses.end();) {
+
+            (*it)->isBonusActive(player.getPosition());
+            (*it)->updateAnimation(deltaTime);
+            (*it)->update(deltaTime, map.getPlatforms());
+            (*it)->checkDie(player.getBullets(), curScore);
+
+            if (!(*it)->getAlive()) {
+                it = bonuses.erase(it);
+            } else {
+                it++;
+            }
+        }
+
+    }
+
+    void drawBonuses(std::vector<std::shared_ptr<Bonus>> &bonuses) {
+
+        if (bonuses.empty()) {
+            return;
+        }
+        
+        for (auto &bonus : bonuses) {
+            bonus->draw();
+        }
+
     }
 
     void updateSpawners(std::vector<std::shared_ptr<SpawnerAliens>> &spawnersAliens, float deltaTime, 
@@ -160,7 +212,7 @@ public:
         for (auto it = granateThrowers.begin(); it != granateThrowers.end();) {
             (*it)->checkDie(player.getBullets(), curScore);
             (*it)->update(deltaTime, allBullets, player); // Update turret state
-            if (!(*it)->getAlive()) {
+            if (!(*it)->getAlive() || player.getPosition().x - (*it)->getPosition().x >= 600) {
                 it = granateThrowers.erase(it);
             } else {
                 it++;
@@ -190,8 +242,8 @@ public:
 
         for (auto it = ledders.begin(); it != ledders.end();) {
             (*it)->checkDie(player.getBullets(), curScore);
-            (*it)->update(player.getPosition(), map.getPlatforms(), deltaTime, allBullets); // Update turret state
-            if (!(*it)->getAlive()) {
+            (*it)->update(player.getPosition(), map.getPlatforms(), deltaTime, allBullets);
+            if (!(*it)->getAlive() || player.getPosition().x - (*it)->getPosition().x >= 600) {
                 it = ledders.erase(it);
             } else {
                 it++;
@@ -220,7 +272,7 @@ public:
         }
 
         for (auto it = turrets.begin(); it != turrets.end();) {
-            (*it)->checkDie(player.getBullets(), curScore);
+            (*it)->checkDie(player.getBullets(), curScore, player.getPosition()  );
             (*it)->update(deltaTime, player, map.getPlatforms(), allBullets); // Update turret state
             if ((*it)->getDie()) {
                 it = turrets.erase(it);
@@ -259,7 +311,7 @@ public:
                std::vector<std::shared_ptr<GranateThrower>> &granateThrowers,
                std::vector<std::shared_ptr<Ledder>> &ledders,
                GameCamera& gameCamera, std::vector<std::shared_ptr<Turret>> &turrets, std::vector<BulletVariant> &bullets,
-               std::unique_ptr<HeliBoss> &boss) {
+               std::unique_ptr<HeliBoss> &boss, std::vector<std::shared_ptr<Bonus>> &bonuses) {
                 
         BeginDrawing();
 
@@ -272,6 +324,8 @@ public:
         drawGranateThrowers(granateThrowers);
 
         drawLedders(ledders);
+
+        drawBonuses(bonuses);
 
         if (boss != nullptr) {
             boss->draw();
@@ -395,6 +449,11 @@ public:
     int gameRun() {
         // Initialization
         //--------------------------------------------------------------------------------------  
+        bossStage = true;
+        Music music = LoadMusicStream("resources/BackgroundMusic.ogg"); // Загрузка музыки
+        PlayMusicStream(music); // Воспроизведение музыки
+
+        Sound shootSound = LoadSound("resources/ShootSound.ogg"); // Загрузка звука стрельбы
 
         int frameDelay = 7; // Задержка между кадрами
         int frameDelayCounter = 0;
@@ -405,7 +464,7 @@ public:
         const int screenHeight = 700;
         
         map.initialization("resources/SuperContraMap.png");
-        Player bill(0, 200, "resources/Bill.png");
+        Player bill(0, 300, "resources/Bill.png");
 
         GameOverMenu gameOverMenu(hiScore, curScore);
 
@@ -414,6 +473,7 @@ public:
         std::vector<std::shared_ptr<GranateThrower>> granateThrowers;
         std::vector<std::shared_ptr<Turret>> turrets;
         std::vector<std::shared_ptr<SpawnerAliens>> spawnersAliens;
+        std::vector<std::shared_ptr<Bonus>> bonuses;
 
         //турели
         //turrets.push_back(std::make_shared<Turret>(900.0f, 410.0f, 3.0f));
@@ -436,6 +496,12 @@ public:
         spawnersAliens.push_back(std::make_shared<SpawnerAliens>(3760, -380));
         spawnersAliens.push_back(std::make_shared<SpawnerAliens>(6950, -1100));
 
+        //бонусы
+        bonuses.push_back(std::make_shared<Bonus>(0, 200, "resources/Bonus.png", TYPE_2, 200));
+        bonuses.push_back(std::make_shared<Bonus>(7400, -1100, "resources/Bonus.png", TYPE_1, -1100));
+        bonuses.push_back(std::make_shared<Bonus>(4900, -600, "resources/Bonus.png", TYPE_1, -600));
+        bonuses.push_back(std::make_shared<Bonus>(8000, -1600, "resources/Bonus.png", TYPE_2, -1600));
+
         std::unique_ptr<HeliBoss> heliBoss;
         
         GameCamera gameCamera(screenWidth, screenHeight);
@@ -451,7 +517,9 @@ public:
 
         // Main game loop
         while (bill.getCOuntLives() > 0)    // Detect window close button or ESC key
-        {
+        {   
+            UpdateMusicStream(music); // Обновление музыкального потока
+            std::cout << bill.getPosition().x << " " << bill.getPosition().y << std::endl;
             if (WindowShouldClose()) {
                 break;
             }
@@ -473,19 +541,19 @@ public:
                 }
             }
 
-            if (bill.getCOuntLives() <= 0 || bill.getPosition().x > 11050) {
-                hiScore = hiScore >= curScore ? hiScore : curScore;
-                gameOverMenu.updateScore(hiScore, curScore);
-                return gameOverMenu.show();;
+            if (bill.getPosition().x > 11050) {
+                break;
             }
     
             bill.isPlayerAlive(aliens, allBullets);
             
-            processInput(bill, gameCamera.leftBorder, gameCamera.rightBorder);
+            processInput(bill, gameCamera.leftBorder, gameCamera.rightBorder, shootSound);
 
             deleteBullets(allBullets);
 
-            updateGame(bill, aliens, granateThrowers, ledders, deltaTime, turrets, allBullets, heliBoss, spawnersAliens, gameCamera);
+            updateGame(bill, aliens, granateThrowers, ledders, deltaTime, turrets, allBullets, 
+                       heliBoss, spawnersAliens, gameCamera, bonuses, music);
+
             updateBullets(allBullets, bill);
             updateBulletsAnimation(deltaTime, allBullets);
             
@@ -503,10 +571,13 @@ public:
 
             // Draw
             //----------------------------------------------------------------------------------
-            drawScene(bill, aliens, granateThrowers, ledders, gameCamera, turrets, allBullets, heliBoss);
+            drawScene(bill, aliens, granateThrowers, ledders, gameCamera, turrets, allBullets, heliBoss, bonuses);
             
             //----------------------------------------------------------------------------------
         }
+
+        UnloadMusicStream(music); // Освобождение памяти
+        UnloadSound(shootSound); 
 
         hiScore = hiScore >= curScore ? hiScore : curScore;
         gameOverMenu.updateScore(hiScore, curScore);
@@ -514,7 +585,6 @@ public:
     }
 
 };
-
 
 
 int main(void)
@@ -526,6 +596,7 @@ int main(void)
     srand(time(NULL));
 
     InitWindow(screenWidth, screenHeight, "SuperContra");
+    InitAudioDevice();
 
     Game game;
     MainMenu mainMenu;

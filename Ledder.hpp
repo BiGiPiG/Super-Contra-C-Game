@@ -2,7 +2,6 @@
 #include "raylib.h"
 #include "LedderBullet.hpp"
 #include "TurretBullet.hpp"
-#include "LedderBullet.hpp"
 
 #include <variant>
 #include <memory>
@@ -94,12 +93,17 @@ public:
     bool getAlive() {
         return isAlive;
     }
-     Ledder(float x, float y) {
+
+    Vector2 getPosition() {
+        return position;
+    }
+
+    Ledder(float x, float y) {
         position = Vector2 {x, y};
         hitBox = { 25.0f + x, y + 28.0f, 50.0f, 100.0f }; // Размер хитбокса
         textureRec = { 0, 0, 101.0f, 128.0f }; 
         ledder = LoadTexture("resources/Ledder.png");
-     }
+    }
 
 
      void shoot(Vector2 target, std::vector<BulletVariant> &bullets) {

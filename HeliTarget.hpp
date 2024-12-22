@@ -18,7 +18,7 @@ private:
     float frameTimer = 0.0f;
     float frameSpeed = 0.05f;
 
-    int hp = 20;
+    int hp = 40;
 
 public:
     bool isTargetActive() {
@@ -61,7 +61,7 @@ public:
         if (!bullets.empty()) {
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
-                    hp--;
+                    hp -= bullet->damage;
                     bullet->isHidden = true;
                     if (hp <= 0) {
                         isActive = false;

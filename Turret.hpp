@@ -1,5 +1,7 @@
 #pragma once
+
 #include "raylib.h"
+
 #include "TurretBullet.hpp"
 #include "Player.hpp"
 #include "LedderBullet.hpp"
@@ -56,6 +58,10 @@ public:
         return isDie;
     }
 
+    Rectangle getHitBox() {
+        return hitBox;
+    }
+
     void update(float deltaTime, Player& player, 
                 std::vector<std::shared_ptr<MapObject>> mapObjects, std::vector<BulletVariant> &bullets) {
         if (isActive && !isAppearing && !isExplosion) {
@@ -94,7 +100,7 @@ public:
                 textureRec.height = 150.0f;
                 textureRec.x = turretTexture.width / 4 * currentExplosionFrame;
                 if (currentExplosionFrame >= explosionFrameCount) {
-                    isDie = true; // Активируем турель после завершения анимации
+                    isDie = true; 
                     isExplosion = false;
                     textureRec.x = 114.0f;
                 }
@@ -115,7 +121,7 @@ public:
         }
     }
 
-    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets, int &score) {
+    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets, int &score, Vector2 playerPos) {
         if (isExplosion) {
             return;
         }
@@ -123,11 +129,14 @@ public:
         if (!bullets.empty()) {
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
-                    hp--;
+                    hp -= bullet->damage;
                     bullet->isHidden = true;
                     if (hp <= 0) {
                         isExplosion = true;
                         score += 1500;
+                    }
+                    if (playerPos.x - position.x >= 600) {
+                        isDie = true;
                     }
                     return;
                 }

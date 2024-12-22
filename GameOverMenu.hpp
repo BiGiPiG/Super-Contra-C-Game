@@ -9,6 +9,7 @@ private:
     int hiScore;
     int curScore;
     Texture2D gameOverMenu;
+    Music music;
     Rectangle textureRec = {0, 0, 900, 700};
 
 public:
@@ -27,9 +28,16 @@ public:
     int show() {
         gameOverMenu = LoadTexture("resources/GameOverMenu.png");
         Font font = LoadFontEx("resources/Font.ttf", 20, NULL, 0);
-        while (true) {
 
-            
+        Music music = LoadMusicStream("resources/GameOver.ogg"); // Загрузка музыки
+        PlayMusicStream(music); // Воспроизведение музыки
+
+        while (true) {
+            if (GetMusicTimePlayed(music) >= 6.5f) {
+                StopMusicStream(music); // Stop the music when it finishes
+            } else {
+                UpdateMusicStream(music); // Always update the music stream
+            }
 
             BeginDrawing();
             
@@ -50,8 +58,10 @@ public:
             if (IsKeyPressed(KEY_ENTER)) {
                 UnloadFont(font); 
                 if (currentFrame == 0) {
+                    UnloadMusicStream(music); // Освобождение памяти
                     return 2;
                 } else {
+                    UnloadMusicStream(music); // Освобождение памяти
                     return 1;
                 }
             }
