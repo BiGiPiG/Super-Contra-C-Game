@@ -121,7 +121,7 @@ public:
         }
     }
 
-    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets, int &score, Vector2 playerPos) {
+    void checkDie(std::vector<std::shared_ptr<Bullet>> &bullets, int &score, Vector2 &playerPos) {
         if (isExplosion) {
             return;
         }

@@ -45,14 +45,14 @@ public:
         DrawTextureRec(heliTarget, textureRec, position, WHITE);
     }
 
-    void update(Vector2 heliPos) {
+    void update(Vector2 &heliPos) {
         position.x = heliPos.x + offset.x;
         position.y = heliPos.y + offset.y;
         hitBox.x = position.x;
         hitBox.y = position.y;
     }
 
-    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets) {
+    void checkDie(std::vector<std::shared_ptr<Bullet>> &bullets) {
 
         if (!isActive) {
             return;

@@ -106,13 +106,13 @@ public:
     }
 
 
-     void shoot(Vector2 target, std::vector<BulletVariant> &bullets) {
+     void shoot(Vector2 &target, std::vector<BulletVariant> &bullets) {
         float bulletPosX = position.x + (lookRight ? 65 : 20);
         float bulletPosY = position.y + 70;
         bullets.push_back(std::make_shared<LedderBullet>(bulletPosX, bulletPosY, target.x + 45, target.y + 60, lookRight));
     }
 
-    void update(Vector2 target, const std::vector<std::shared_ptr<MapObject>>& mapObjects, 
+    void update(Vector2 target, std::vector<std::shared_ptr<MapObject>> &mapObjects, 
             float deltaTime, std::vector<BulletVariant> &bullets) {
     
         if (isDying) {
@@ -158,7 +158,7 @@ public:
         }
     }
 
-    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets, int &score) {
+    void checkDie(std::vector<std::shared_ptr<Bullet>> &bullets, int &score) {
         if (isDying) {
             return;
         }

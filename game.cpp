@@ -33,25 +33,33 @@ public:
     int curScore = 0;
     bool bossStage = true;
 
+    std::vector<std::shared_ptr<Alien>> aliens;
+    std::vector<std::shared_ptr<Ledder>> ledders;
+    std::vector<std::shared_ptr<GranateThrower>> granateThrowers;
+    std::vector<std::shared_ptr<Turret>> turrets;
+    std::vector<std::shared_ptr<SpawnerAliens>> spawnersAliens;
+    std::vector<std::shared_ptr<Bonus>> bonuses;
+
+    std::vector<BulletVariant> allBullets;
+
     void drawMap() {
         map.mapDraw();
     }
 
-    void updateAliens(std::vector<std::shared_ptr<Alien>>& aliens, Player& bill, 
-                  const std::vector<std::shared_ptr<MapObject>>& mapObjects) {
+    void updateAliens(Player& bill) {
 
         if (!aliens.empty()) {
 
             for (const auto &alien : aliens) {
                 if (alien->isLookRight()) {
-                    alien->runRight(mapObjects);
+                    alien->runRight(map.getPlatforms());
                 } else {
-                    alien->runLeft(mapObjects);
+                    alien->runLeft(map.getPlatforms());
                 }
                 
-                alien->updatePhysics(mapObjects);
+                alien->updatePhysics(map.getPlatforms());
                 for (const auto &bullet : bill.getBullets()) {
-                    alien->checkAlien(mapObjects, bill.getPosition(), bullet, curScore);
+                    alien->checkAlien(map.getPlatforms(), bill.getPosition(), bullet, curScore);
                 }
                 alien->updateAnimation();
             }
@@ -97,24 +105,19 @@ public:
     }
 
     // Обновление состояния игры
-    void updateGame(Player& bill, std::vector<std::shared_ptr<Alien>>& aliens,
-                    std::vector<std::shared_ptr<GranateThrower>> &granateThrowers,
-                    std::vector<std::shared_ptr<Ledder>> &ledders, float deltaTime, 
-                    std::vector<std::shared_ptr<Turret>> &turrets, std::vector<BulletVariant> &allBullets,
-                    std::unique_ptr<HeliBoss> &boss, std::vector<std::shared_ptr<SpawnerAliens>> &spawnersAliens, 
-                    GameCamera& gameCamera, std::vector<std::shared_ptr<Bonus>> &bonuses, Music &music) {
+    void updateGame(Player &bill, float deltaTime, GameCamera& gameCamera, Music &music, std::unique_ptr<HeliBoss> &boss) {
 
-            updateSpawners(spawnersAliens, deltaTime, aliens, bill);
+            updateSpawners(deltaTime, bill);
 
-            updateAliens(aliens, bill, map.getPlatforms());
+            updateAliens(bill);
 
-            updateGranateThrowers(granateThrowers, deltaTime, allBullets, bill);
+            updateGranateThrowers(deltaTime, bill);
 
-            updateTurrets(turrets, deltaTime, bill, allBullets);
+            updateTurrets(deltaTime, bill);
 
-            updateLedders(ledders, deltaTime, bill, allBullets);
+            updateLedders(deltaTime, bill);
 
-            updateBonuses(bonuses, deltaTime, bill);
+            updateBonuses(deltaTime, bill);
 
             if (boss == nullptr && bill.getPosition().x >= 10020 && bossStage) {
                 boss = std::make_unique<HeliBoss>(Vector2 {8750, -1575});
@@ -156,7 +159,7 @@ public:
         
     }
 
-    void updateBonuses(std::vector<std::shared_ptr<Bonus>> &bonuses, float deltaTime, Player &player) {
+    void updateBonuses(float deltaTime, Player &player) {
        
         if (bonuses.empty()) {
             return;
@@ -178,7 +181,7 @@ public:
 
     }
 
-    void drawBonuses(std::vector<std::shared_ptr<Bonus>> &bonuses) {
+    void drawBonuses() {
 
         if (bonuses.empty()) {
             return;
@@ -190,8 +193,7 @@ public:
 
     }
 
-    void updateSpawners(std::vector<std::shared_ptr<SpawnerAliens>> &spawnersAliens, float deltaTime, 
-        std::vector<std::shared_ptr<Alien>>& aliens, Player &player) {
+    void updateSpawners(float deltaTime, Player &player) {
         for (auto it = spawnersAliens.begin(); it != spawnersAliens.end();) {
             if ((*it)->getIsAlive()) {
                 (*it)->update(deltaTime, aliens, player);
@@ -202,8 +204,7 @@ public:
         }
     }
 
-    void updateGranateThrowers(std::vector<std::shared_ptr<GranateThrower>> &granateThrowers,
-        float deltaTime, std::vector<BulletVariant> &allBullets, Player &player) {
+    void updateGranateThrowers(float deltaTime, Player &player) {
 
         if (granateThrowers.empty()) {
             return;
@@ -221,7 +222,7 @@ public:
 
     }
 
-    void drawGranateThrowers(std::vector<std::shared_ptr<GranateThrower>> &granateThrowers) {
+    void drawGranateThrowers() {
 
         if (granateThrowers.empty()) {
             return;
@@ -233,8 +234,7 @@ public:
 
     }
 
-    void updateLedders(std::vector<std::shared_ptr<Ledder>> &ledders, float deltaTime, 
-                       Player &player, std::vector<BulletVariant> &allBullets) {
+    void updateLedders(float deltaTime, Player &player) {
 
         if (ledders.empty()) {
             return;
@@ -252,7 +252,7 @@ public:
 
     }
 
-    void drawLedders(std::vector<std::shared_ptr<Ledder>> ledders) {
+    void drawLedders() {
 
         if (ledders.empty()) {
             return;
@@ -264,8 +264,7 @@ public:
 
     }
 
-    void updateTurrets(std::vector<std::shared_ptr<Turret>> &turrets, float deltaTime, 
-                       Player &player, std::vector<BulletVariant> &allBullets) {
+    void updateTurrets(float deltaTime, Player &player) {
 
         if (turrets.empty()) {
             return;
@@ -283,7 +282,7 @@ public:
 
     }
 
-    void drawTurrets(std::vector<std::shared_ptr<Turret>> &turrets) {
+    void drawTurrets() {
         
         if (turrets.empty()) {
             return;
@@ -294,7 +293,7 @@ public:
         }
     }
 
-    void updateAliensFrames(std::vector<std::shared_ptr<Alien>>& aliens) {
+    void updateAliensFrames() {
 
         if (!aliens.empty()) {
 
@@ -307,11 +306,7 @@ public:
 
     }
 
-    void drawScene(Player& bill, const std::vector<std::shared_ptr<Alien>>& aliens,
-               std::vector<std::shared_ptr<GranateThrower>> &granateThrowers,
-               std::vector<std::shared_ptr<Ledder>> &ledders,
-               GameCamera& gameCamera, std::vector<std::shared_ptr<Turret>> &turrets, std::vector<BulletVariant> &bullets,
-               std::unique_ptr<HeliBoss> &boss, std::vector<std::shared_ptr<Bonus>> &bonuses) {
+    void drawScene(Player& bill, GameCamera& gameCamera, std::unique_ptr<HeliBoss> &boss) {
                 
         BeginDrawing();
 
@@ -319,13 +314,13 @@ public:
 
         drawMap();
 
-        drawTurrets(turrets);
-        drawAliens(aliens);
-        drawGranateThrowers(granateThrowers);
+        drawTurrets();
+        drawAliens();
+        drawGranateThrowers();
 
-        drawLedders(ledders);
+        drawLedders();
 
-        drawBonuses(bonuses);
+        drawBonuses();
 
         if (boss != nullptr) {
             boss->draw();
@@ -333,7 +328,7 @@ public:
 
         bill.draw(gameCamera.camera.target);
 
-        drawBullets(bullets);
+        drawBullets();
 
         
         
@@ -355,7 +350,7 @@ public:
         EndDrawing();
     }
 
-    void drawAliens(const std::vector<std::shared_ptr<Alien>>& aliens) {
+    void drawAliens() {
 
         if (!aliens.empty()) {
 
@@ -366,13 +361,13 @@ public:
         }
     }
 
-    void updateBullets(std::vector<BulletVariant> &bullets, Player &bill) {
+    void updateBullets(Player &bill) {
 
-        if (bullets.empty()) {
+        if (allBullets.empty()) {
             return;
         }
 
-        for (auto &bullet : bullets) {
+        for (auto &bullet : allBullets) {
             if (auto granate = std::get_if<std::shared_ptr<Granate>>(&bullet)) {
                 (*granate)->updateGranate(map.getPlatforms());
             } else if (auto ledderBullet = std::get_if<std::shared_ptr<LedderBullet>>(&bullet)) {
@@ -383,13 +378,13 @@ public:
         }
     }
 
-    void drawBullets(std::vector<BulletVariant> &bullets) {
+    void drawBullets() {
 
-        if (bullets.empty()) {
+        if (allBullets.empty()) {
             return;
         }
 
-        for (auto &bullet : bullets) {
+        for (auto &bullet : allBullets) {
             if (auto granate = std::get_if<std::shared_ptr<Granate>>(&bullet)) {
                 (*granate)->draw();
             } else if (auto ledderBullet = std::get_if<std::shared_ptr<LedderBullet>>(&bullet)) {
@@ -401,12 +396,12 @@ public:
         }
     }
 
-    void updateBulletsAnimation(float deltaTime, std::vector<BulletVariant> &bullets) {
-        if (bullets.empty()) {
+    void updateBulletsAnimation(float deltaTime) {
+        if (allBullets.empty()) {
             return;
         }
 
-        for (auto &bullet : bullets) {
+        for (auto &bullet : allBullets) {
             if (auto granate = std::get_if<std::shared_ptr<Granate>>(&bullet)) {
                 (*granate)->updateAnimation(deltaTime);
             } else if (auto ledderBullet = std::get_if<std::shared_ptr<LedderBullet>>(&bullet)) {
@@ -417,28 +412,28 @@ public:
         }
     }
 
-    void deleteBullets(std::vector<BulletVariant> &bullets) {
+    void deleteBullets() {
 
-        if (bullets.empty()) {
+        if (allBullets.empty()) {
             return;
         }
 
-        for (auto it = bullets.begin(); it != bullets.end();) {
+        for (auto it = allBullets.begin(); it != allBullets.end();) {
             if (auto granate = std::get_if<std::shared_ptr<Granate>>(&(*it))) {
                 if (!(*granate)->getActive()) {
-                    it = bullets.erase(it);
+                    it = allBullets.erase(it);
                 } else {
                     it++;
                 }
             } else if (auto ledderBullet = std::get_if<std::shared_ptr<LedderBullet>>(&(*it))) {
                 if (!(*ledderBullet)->isActive) {
-                    it = bullets.erase(it);
+                    it = allBullets.erase(it);
                 } else {
                     it++;
                 }
             } else if (auto turretBullet = std::get_if<std::shared_ptr<TurretBullet>>(&(*it))) {
                 if (!(*turretBullet)->getAlive()) {
-                    it = bullets.erase(it);
+                    it = allBullets.erase(it);
                 } else {
                     it++;
                 }
@@ -458,8 +453,6 @@ public:
         int frameDelay = 7; // Задержка между кадрами
         int frameDelayCounter = 0;
 
-        std::vector<BulletVariant> allBullets;
-
         const int screenWidth = 900;
         const int screenHeight = 700;
         
@@ -467,13 +460,6 @@ public:
         Player bill(0, 300, "resources/Bill.png");
 
         GameOverMenu gameOverMenu(hiScore, curScore);
-
-        std::vector<std::shared_ptr<Alien>> aliens;
-        std::vector<std::shared_ptr<Ledder>> ledders;
-        std::vector<std::shared_ptr<GranateThrower>> granateThrowers;
-        std::vector<std::shared_ptr<Turret>> turrets;
-        std::vector<std::shared_ptr<SpawnerAliens>> spawnersAliens;
-        std::vector<std::shared_ptr<Bonus>> bonuses;
 
         //турели
         //turrets.push_back(std::make_shared<Turret>(900.0f, 410.0f, 3.0f));
@@ -549,13 +535,12 @@ public:
             
             processInput(bill, gameCamera.leftBorder, gameCamera.rightBorder, shootSound);
 
-            deleteBullets(allBullets);
+            deleteBullets();
 
-            updateGame(bill, aliens, granateThrowers, ledders, deltaTime, turrets, allBullets, 
-                       heliBoss, spawnersAliens, gameCamera, bonuses, music);
+            updateGame(bill, deltaTime, gameCamera, music, heliBoss);
 
-            updateBullets(allBullets, bill);
-            updateBulletsAnimation(deltaTime, allBullets);
+            updateBullets(bill);
+            updateBulletsAnimation(deltaTime);
             
             bill.updateAnimation(deltaTime);
             
@@ -563,7 +548,7 @@ public:
             if (frameDelayCounter >= frameDelay) {
             
                 bill.addCurFrame();
-                updateAliensFrames(aliens);
+                updateAliensFrames();
                 frameDelayCounter = 0;
                 
             }
@@ -571,7 +556,7 @@ public:
 
             // Draw
             //----------------------------------------------------------------------------------
-            drawScene(bill, aliens, granateThrowers, ledders, gameCamera, turrets, allBullets, heliBoss, bonuses);
+            drawScene(bill, gameCamera, heliBoss);
             
             //----------------------------------------------------------------------------------
         }

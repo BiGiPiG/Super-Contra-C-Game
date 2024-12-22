@@ -41,7 +41,7 @@ private:
     void die() {
         isDying = true;
         velocity.x = 0;
-        velocity.y = -jumpHeight; // Устанавливаем вертикальную скорость для прыжка
+        velocity.y = -jumpHeight; // Устанавливаем вертикальную скорость
         isJumping = true;   // Устанавливаем флаг прыжка
     }
 
@@ -70,7 +70,7 @@ public:
         isAlive = false;
     }
 
-    int isOnGround(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    int isOnGround(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
              if (auto platform = dynamic_cast<Platform*>(obj.get()))  {
                 
@@ -82,7 +82,7 @@ public:
         return 0;
     }
 
-    bool isOnLadder(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    bool isOnLadder(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
             if (auto ladder = dynamic_cast<Ladder*>(obj.get())) {
                 Vector2 hitBoxCenter = { hitBox.x + hitBox.width, hitBox.y + hitBox.height};
@@ -110,7 +110,7 @@ public:
         
     }
 
-    void update(float deltaTime, const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
+    void update(float deltaTime, std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         if (isActive && !isDying) {
             // Двигаем бонус по горизонтали
             position.x += velocity.x;
@@ -133,7 +133,7 @@ public:
                 velocity.y = 0.0f; // Сброс скорости прыжка
                 hitBox.y = position.y;
             } else if (isOnLadder(mapObjects)) {
-                position.y -= 2.5; // Поднимаем игрока немного выше, чтобы он не проваливался сквозь лестницу
+                position.y -= 2.5; // Поднимаем немного выше, чтобы он не проваливался сквозь лестницу
                 hitBox.y = 38.0f + position.y; // Обновляем хитбокс
                 isJumping = false; 
                 velocity.y = 0.0f;
@@ -148,7 +148,7 @@ public:
         }
     }
 
-    void isBonusActive(Vector2 playerPos) {
+    void isBonusActive(Vector2 &playerPos) {
         std::cout << playerPos.x - position.x << std::endl;
         if (playerPos.x - position.x > 450) {
             isActive = true;
@@ -167,7 +167,7 @@ public:
         return position; // Возвращаем позицию бонуса
     }
 
-    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets, int &score) {
+    void checkDie(std::vector<std::shared_ptr<Bullet>> &bullets, int &score) {
 
         if (isDying) {
             return;

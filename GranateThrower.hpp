@@ -173,7 +173,7 @@ public:
     }
 
     //проверка состояния метателя
-    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets, int &score) {
+    void checkDie(std::vector<std::shared_ptr<Bullet>> &bullets, int &score) {
 
         if (isDying) {
             return;

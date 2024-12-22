@@ -21,7 +21,7 @@ public:
     bool isActive = true;
     bool isHidden = false;
 
-    int isGround(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    int isGround(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
              if (auto platform = dynamic_cast<Platform*>(obj.get()))  {
                 if (platform->isCollision(hitBox)) {
@@ -32,7 +32,7 @@ public:
         return 0;
     }
 
-    bool isLadder(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    bool isLadder(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
             if (auto ladder = dynamic_cast<Ladder*>(obj.get())) {
                 Vector2 hitBoxCenter = { hitBox.x + hitBox.width, hitBox.y + hitBox.height};
@@ -59,7 +59,7 @@ public:
         UnloadTexture(bullet);
     }
 
-    void update(std::vector<std::shared_ptr<MapObject>> mapObjects, Vector2 playerPos) {
+    void update(std::vector<std::shared_ptr<MapObject>> &mapObjects, Vector2 &playerPos) {
         if (isActive) {
             position.x += velocity.x;
             position.y += velocity.y;

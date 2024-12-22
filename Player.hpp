@@ -31,20 +31,16 @@ private:
     int countLives = 3;
     int deathFrames = 4;
 
-
     int currentFrame = 0;
     int countFrames = 7;
     int countAnimations = 7;
     int countRunFrames = 6;
     int countFrameJump = 4;
-    int countStatShoot = 2;
 
     enum AnimationState { IDLE, RUNNING, JUMPING, DYING };
     AnimationState currentAnimationState = IDLE; // Текущее состояние анимации
     AnimationState previousAnimationState = IDLE; // Предыдущее состояние анимации
 
-    float xVelocity = 5;
-    float yVelocity = 0;
     float gravity = 0.5;
     float jumpHeight = 14;
     float bulletSpeed = 20.0f; // Скорость пулиg
@@ -61,7 +57,6 @@ private:
     bool isShooting = false;
     bool leftRun = false;
     bool rightRun = false;
-    bool changeFrame = false;
     bool lookUp = false;
     bool lookDown = false;
     bool isAlive = true;
@@ -170,7 +165,7 @@ public:
         lifeIcon = LoadTexture("resources/life_icon.png");
     }
 
-    std::vector<std::shared_ptr<Bullet>> getBullets() {
+    std::vector<std::shared_ptr<Bullet>>& getBullets() {
         return bullets;
     }
 
@@ -202,7 +197,7 @@ public:
         return hitBox.height;
     }
 
-    Vector2 getPosition() {
+    Vector2& getPosition() {
         return position;
     }
 
@@ -214,7 +209,7 @@ public:
         UnloadTexture(playerTexture);
     }
 
-    int isOnGround(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    int isOnGround(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
              if (auto platform = dynamic_cast<Platform*>(obj.get()))  {
                 
@@ -226,7 +221,7 @@ public:
         return 0;
     }
 
-    bool isOnLadder(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    bool isOnLadder(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
             if (auto ladder = dynamic_cast<Ladder*>(obj.get())) {
                 Vector2 hitBoxCenter = { hitBox.x + hitBox.width, hitBox.y + hitBox.height};
@@ -240,7 +235,7 @@ public:
         return false;
     }
 
-    void runLeft(const std::vector<std::shared_ptr<MapObject>> &mapObjects, float leftBorder) {
+    void runLeft(std::vector<std::shared_ptr<MapObject>> &mapObjects, float leftBorder) {
 
         if (isDying) {
             return;
@@ -289,7 +284,7 @@ public:
 
     }
 
-    void runRight(const std::vector<std::shared_ptr<MapObject>> mapObjects, float rightBorder) {
+    void runRight(std::vector<std::shared_ptr<MapObject>> &mapObjects, float rightBorder) {
 
         if (isDying) {
             return;
@@ -342,7 +337,7 @@ public:
         }
     }
 
-    void jump(const std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    void jump(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
 
         if (isDying) {
             return;
@@ -417,7 +412,7 @@ public:
         }
     }
 
-    void updatePhysics(const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
+    void updatePhysics(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
 
         //std::cout << velocity.y << " " << position.y << std::endl;
 
@@ -468,7 +463,7 @@ public:
         hitBox.x = position.x + 25; // Обновление хитбокса по X
     }
 
-    void draw(Vector2 pos) const {
+    void draw(Vector2 &pos) const {
         if (isBlinking) {
             // Определяем прозрачность на основе текущего мигания
             Color color = (currentBlink % 2 == 0) ? WHITE : (Color){255, 255, 255, 0}; // Прозрачность на четных кадрах
@@ -481,7 +476,7 @@ public:
         drawLives(pos);
     }
 
-    void drawLives(Vector2 pos) const {
+    void drawLives(Vector2 &pos) const {
         for (int i = 0; i < countLives; i++) {
             DrawTexture(lifeIcon, pos.x - 430 + 10 + i * (lifeIcon.width + 5), pos.y - 320, WHITE); // Отрисовка иконок жизней
         }
@@ -540,7 +535,7 @@ public:
     
     }
 
-    void updateBullets(const std::vector<std::shared_ptr<MapObject>>& mapObjects) {
+    void updateBullets(std::vector<std::shared_ptr<MapObject>>& mapObjects) {
         for (auto it = bullets.begin(); it != bullets.end();) {
             (*it)->update(mapObjects, position);
             if (!(*it)->isActive) {
@@ -560,12 +555,12 @@ public:
         }
     }
 
-    void update(const std::vector<std::shared_ptr<MapObject>>& mapObjects) {
+    void update(std::vector<std::shared_ptr<MapObject>>& mapObjects) {
         updatePhysics(mapObjects); // Обновляем физику (включая прыжки)
         updateBullets(mapObjects); // Обновляем состояние пуль
     }   
 
-    void isPlayerAlive(std::vector<std::shared_ptr<Alien>>& aliens, 
+    void isPlayerAlive(std::vector<std::shared_ptr<Alien>>  &aliens, 
                         std::vector<BulletVariant> &bullets) {
 
         if (isBlinking || isDying) {

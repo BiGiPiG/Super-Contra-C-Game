@@ -34,7 +34,7 @@ public:
         return isActive;
     }
 
-    int isOnGround(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    int isOnGround(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
              if (auto platform = dynamic_cast<Platform*>(obj.get()))  {
                 if (platform->isCollision(hitBox)) {
@@ -45,7 +45,7 @@ public:
         return false;
     }
 
-    bool isOnLadder(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    bool isOnLadder(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
             if (auto ladder = dynamic_cast<Ladder*>(obj.get())) {
                 Vector2 hitBoxCenter = { hitBox.x + hitBox.width, hitBox.y + hitBox.height};
@@ -81,7 +81,7 @@ public:
         }
     }
 
-    void updateGranate(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    void updateGranate(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         if (!isExploding) {
             isLanding = isOnGround(mapObjects); // Проверяем на приземление
             if (isLanding) {

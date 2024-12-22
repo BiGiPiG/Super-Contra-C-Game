@@ -48,7 +48,7 @@ public:
         UnloadTexture(heliGun);
     }
 
-    void updateAnimation(Vector2 playerPos) {
+    void updateAnimation(Vector2 &playerPos) {
 
         if ((textureRec.width < 0 && playerPos.x > position.x) || 
             (textureRec.width > 0 && playerPos.x <= position.x)) {
@@ -57,7 +57,7 @@ public:
         }
     }
 
-    void updatePos(Vector2 heliPos) {
+    void updatePos(Vector2 &heliPos) {
         position.x = heliPos.x + offset.x;
         position.y = heliPos.y + offset.y;
         hitBox.x = position.x;
@@ -68,7 +68,7 @@ public:
         DrawTextureRec(heliGun, textureRec, position, WHITE);
     }
 
-    void checkDie(std::vector<std::shared_ptr<Bullet>> bullets) {
+    void checkDie(std::vector<std::shared_ptr<Bullet>> &bullets) {
 
         if (isExplosion) {
             return;

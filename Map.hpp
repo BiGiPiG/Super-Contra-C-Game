@@ -47,7 +47,7 @@ public:
         DrawTexture(background, 0, -1580, WHITE); 
     }
 
-    const std::vector<std::shared_ptr<MapObject>>& getPlatforms() const {
+    std::vector<std::shared_ptr<MapObject>>& getPlatforms() {
         return this->mapObjects;
     }
 };

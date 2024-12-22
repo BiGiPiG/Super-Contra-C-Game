@@ -49,7 +49,7 @@ public:
         UnloadTexture(alienTexture); // Освобождение текстуры при уничтожении объекта
     }
 
-    Rectangle getHitBox() {
+    Rectangle& getHitBox() {
         return hitBox;
     }
 
@@ -66,7 +66,7 @@ public:
         //DrawRectangleRec(hitBox, GREEN);
     }
 
-    int isOnGround(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    int isOnGround(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
              if (auto platform = dynamic_cast<Platform*>(obj.get()))  {
                 
@@ -78,13 +78,12 @@ public:
         return 0;
     }
 
-    bool isOnLadder(std::vector<std::shared_ptr<MapObject>> mapObjects) {
+    bool isOnLadder(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
             if (auto ladder = dynamic_cast<Ladder*>(obj.get())) {
                 Vector2 hitBoxCenter = { hitBox.x + hitBox.width, hitBox.y + hitBox.height};
                 
                 if (ladder->isCollision(hitBoxCenter)) {
-                    //std::cout << "ladder" << std::endl;
                     return true;
                 }
             }
@@ -92,7 +91,7 @@ public:
         return false;
     }
 
-    void runLeft(const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
+    void runLeft(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         if (isOnGround(mapObjects) && !isOnLadder(mapObjects)) {
             
             position.x -= velocity.x;
@@ -126,7 +125,7 @@ public:
         }
     }
 
-    void runRight(const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
+    void runRight(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         if (isOnGround(mapObjects) && !isOnLadder(mapObjects)) {
             position.x += velocity.x;
             hitBox.x = 25 + position.x;
@@ -172,7 +171,7 @@ public:
         }
     }
 
-    void updatePhysics(const std::vector<std::shared_ptr<MapObject>> &mapObjects) {
+    void updatePhysics(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         
         if (isJumping) {
 
@@ -182,7 +181,6 @@ public:
 
             if (isOnGround(mapObjects)) { // Проверка на приземление
 
-                //std::cout << "notJump" << std::endl;
                 position.y = isOnGround(mapObjects) - alienTexture.height / countAnimations; // Сброс позиции на землю
                 isJumping = false; // Завершение прыжка
                 velocity.y = 0.0f; // Сброс скорости прыжка
@@ -190,8 +188,7 @@ public:
 
             } else if (isOnLadder(mapObjects)) {
 
-                // Если игрок на лестнице, корректируем его позицию
-                position.y -= 2.5; // Поднимаем игрока немного выше, чтобы он не проваливался сквозь лестницу
+                position.y -= 2.5; // Поднимаем немного выше, чтобы он не проваливался сквозь лестницу
                 hitBox.y = yShift + position.y; // Обновляем хитбокс
                 isJumping = false; 
                 velocity.y = 0.0f;
@@ -219,7 +216,7 @@ public:
             } 
         } else {
             position.y = isOnGround(mapObjects) - alienTexture.height / countAnimations;
-            velocity.y = 0.0f; // Если игрок на земле, сбрасываем вертикальную скорость
+            velocity.y = 0.0f; // Если на земле, сбрасываем вертикальную скорость
         }
         
         hitBox.x = position.x + 25; // Обновление хитбокса по X
@@ -239,14 +236,14 @@ public:
             }
         } else if (isJumping) {
             textureRec.x = 0;
-            textureRec.y = (float)alienTexture.height / countAnimations; // Кадр прыжка
+            textureRec.y = (float)alienTexture.height / countAnimations; 
         } else {
             textureRec.x = (float)alienTexture.width / countFrameRun * currentRunFrame;
-            textureRec.y = (float)alienTexture.height / countAnimations * 0; // Кадр стрельбы или бега
+            textureRec.y = (float)alienTexture.height / countAnimations * 0; 
         }
     }
 
-    void checkAlien(std::vector<std::shared_ptr<MapObject>> mapObjects, Vector2 playerPos, std::shared_ptr<Bullet> bullet, int &score) {
+    void checkAlien(std::vector<std::shared_ptr<MapObject>> &mapObjects, Vector2 &playerPos, std::shared_ptr<Bullet> bullet, int &score) {
 
         if (isHidden) {
             return;
