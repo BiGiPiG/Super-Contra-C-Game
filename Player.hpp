@@ -76,6 +76,9 @@ private:
 
     void updateDeathAnimation() {
 
+        hitBox.width = 50.0f;
+        hitBox.height = 100.0f;
+
         if (frameTimer >= frameSpeed) {
             currentDieFrame++;
             frameTimer = 0.0f;
@@ -94,6 +97,10 @@ private:
     }
 
     void updateJumpAnimation() {
+
+        hitBox.width = 50.0f;
+        hitBox.height = 100.0f;
+
         currentFrame %= countFrameJump; // Обновляем кадр
         textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
         textureRec.y = (float)playerTexture.height / countAnimations * 2; // Кадр прыжка
@@ -102,6 +109,8 @@ private:
     void updateMovementAnimation() {
 
         currentFrame %= countRunFrames; // Обновляем кадр
+        hitBox.width = 50.0f;
+        hitBox.height = 100.0f;
 
         if (lookUp) {
             textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
@@ -121,10 +130,18 @@ private:
     }
 
     void updateIdleAnimation() {
+
+        hitBox.width = 50.0f;
+        hitBox.height = 100.0f;
+
         if (lookUp) {
             textureRec.x = (float)playerTexture.width / countFrames * 2; // Кадр ожидания
             textureRec.y = (float)playerTexture.height / countAnimations * 6;
         } else if (lookDown) {
+            hitBox.y = position.y + 100;
+            hitBox.x = position.x;
+            hitBox.width = 100.0f;
+            hitBox.height = 38.0f;
             textureRec.x = (float)playerTexture.width / countFrames * 4; // Кадр ожидания
             textureRec.y = (float)playerTexture.height / countAnimations * 6;
         } else {
@@ -469,8 +486,10 @@ public:
             Color color = (currentBlink % 2 == 0) ? WHITE : (Color){255, 255, 255, 0}; // Прозрачность на четных кадрах
             
             DrawTextureRec(playerTexture, textureRec, position, color); // Отрисовка с учетом прозрачности
+            DrawRectangleRec(hitBox, GREEN);
         } else {
             DrawTextureRec(playerTexture, textureRec, position, WHITE); // Обычная отрисовка
+            DrawRectangleRec(hitBox, GREEN);
         }
         drawBullets();
         drawLives(pos);

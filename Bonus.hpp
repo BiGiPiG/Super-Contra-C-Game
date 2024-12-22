@@ -149,7 +149,6 @@ public:
     }
 
     void isBonusActive(Vector2 &playerPos) {
-        std::cout << playerPos.x - position.x << std::endl;
         if (playerPos.x - position.x > 450) {
             isActive = true;
             check = true;
@@ -177,6 +176,8 @@ public:
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
                     score += 10000;
+                    std::cout << "----------------------------------------------------" << std::endl;
+                    std::cout << "die" << std::endl;
                     die();
                     return;
                 }

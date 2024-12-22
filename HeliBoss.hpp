@@ -14,6 +14,7 @@ private:
     Vector2 startPos;
     float positionDelta = 1800.0f;
     Vector2 velocity = {3.0f, 0.1f};
+    bool changeMusic = true;
 
     Rectangle textureRec;
     Texture2D heli;
@@ -60,6 +61,7 @@ private:
     void stage2() {
         heliTarget = std::make_unique<HeliTarget>(Vector2 {position.x + 510, position.y + 150}, Vector2{510, 150});
         isStage1 = false;
+        
     }
 
 public:
@@ -95,11 +97,11 @@ public:
     }
 
     void update(float deltaTime, Player &player, std::vector<BulletVariant> &bullets,
-                std::vector<std::shared_ptr<Alien>> &aliens) {
+                std::vector<std::shared_ptr<Alien>> &aliens, Music &music) {
 
-        if (isDying && position.y >= startPos.y + 300) {
+        if (isDying && position.y >= startPos.y + 200) {
             isActive = false;
-        }
+}
 
         if (position.x < startPos.x + positionDelta && 
             position.x >= startPos.x) {
@@ -128,6 +130,14 @@ public:
                 textureRec.x = heli.width / 2;
                 velocity = {0.0f, 1.0f};
                 isDying = true;
+                if (changeMusic) {
+                    StopMusicStream(music); // Остановка текущей музыки
+                    UnloadMusicStream(music); // Освобождение памяти текущей музыки
+                    music = LoadMusicStream("resources/BossExplosion.ogg"); // Загрузка новой музыки
+                    PlayMusicStream(music); // Воспроизведение новой музыки
+                    changeMusic = false;
+                }
+                
             }
             
             return;

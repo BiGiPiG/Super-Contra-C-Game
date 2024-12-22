@@ -142,7 +142,7 @@ public:
             }
 
             if (boss != nullptr) {
-                boss->update(deltaTime, bill, allBullets, aliens);
+                boss->update(deltaTime, bill, allBullets, aliens, music);
                 boss->updateAnimation(deltaTime);
             }
             
@@ -336,16 +336,16 @@ public:
         
         //DrawRectangleLines(6760, -950, 450, 2, BLUE);
 
-        /*
+        
         DrawTriangleLines( Vector2{2595, 540}, Vector2{3385, 540}, Vector2{3385, 130}, BLUE);
         DrawRectangleLines(3375, 130, 810, 100, BLUE);
         DrawTriangleLines(Vector2{4185, 130}, Vector2{4885, 130}, Vector2{4885, -220}, BLUE);
-        DrawRectangleLines(4875, -220, 910, 100, BLUE);
+        DrawRectangleLines(4875, -220, 915, 100, BLUE);
         DrawTriangleLines( Vector2{5785, -220}, Vector2{6570, -220}, Vector2{6570, -620}, BLUE);
         DrawRectangleLines(6565, -620, 1610, 100, BLUE);
         DrawTriangleLines( Vector2{8175, -620}, Vector2{8895, -620}, Vector2{8895, -970}, BLUE);
         DrawRectangleLines(8895, -970, 2500, 100, BLUE);
-        */
+        
         EndMode2D(); 
         EndDrawing();
     }
@@ -461,6 +461,12 @@ public:
 
         GameOverMenu gameOverMenu(hiScore, curScore);
 
+        turrets.clear();
+        ledders.clear();
+        granateThrowers.clear();
+        spawnersAliens.clear();
+        bonuses.clear();
+
         //турели
         //turrets.push_back(std::make_shared<Turret>(900.0f, 410.0f, 3.0f));
         turrets.push_back(std::make_shared<Turret>(7630.0f, -770.0f, 2.0f));
@@ -484,9 +490,9 @@ public:
 
         //бонусы
         bonuses.push_back(std::make_shared<Bonus>(0, 200, "resources/Bonus.png", TYPE_2, 200));
-        bonuses.push_back(std::make_shared<Bonus>(7400, -1100, "resources/Bonus.png", TYPE_1, -1100));
-        bonuses.push_back(std::make_shared<Bonus>(4900, -600, "resources/Bonus.png", TYPE_1, -600));
-        bonuses.push_back(std::make_shared<Bonus>(8000, -1600, "resources/Bonus.png", TYPE_2, -1600));
+        bonuses.push_back(std::make_shared<Bonus>(7700, -1100, "resources/Bonus.png", TYPE_1, -1100));
+        bonuses.push_back(std::make_shared<Bonus>(4900, -700, "resources/Bonus.png", TYPE_1, -700));
+        bonuses.push_back(std::make_shared<Bonus>(8400, -1400, "resources/Bonus.png", TYPE_2, -1400));
 
         std::unique_ptr<HeliBoss> heliBoss;
         
@@ -505,7 +511,7 @@ public:
         while (bill.getCOuntLives() > 0)    // Detect window close button or ESC key
         {   
             UpdateMusicStream(music); // Обновление музыкального потока
-            std::cout << bill.getPosition().x << " " << bill.getPosition().y << std::endl;
+            //std::cout << bill.getPosition().x << " " << bill.getPosition().y << std::endl;
             if (WindowShouldClose()) {
                 break;
             }
@@ -544,7 +550,7 @@ public:
             
             bill.updateAnimation(deltaTime);
             
-            gameCamera.setCameraTarget(bill.getPosition().x + bill.getWidth() / 2, bill.getPosition().y + bill.getHeight() / 2 - 140);
+            gameCamera.setCameraTarget(bill.getPosition().x + 25, bill.getPosition().y + 50 - 140);
             if (frameDelayCounter >= frameDelay) {
             
                 bill.addCurFrame();

@@ -28,7 +28,7 @@ public:
         mapObjects.push_back(std::make_shared<Ladder>(450, 485, Vector2{2595, 540}, Vector2{3385, 540}, Vector2{3385, 130}));
         mapObjects.push_back(std::make_shared<Platform>(4315, -140, Rectangle{3375, 130, 810, 100}));
         mapObjects.push_back(std::make_shared<Ladder>(450, 485, Vector2{4185, 130}, Vector2{4885, 130}, Vector2{4885, -220}));
-        mapObjects.push_back(std::make_shared<Platform>(4315, -140, Rectangle{4875, -220, 910, 100}));
+        mapObjects.push_back(std::make_shared<Platform>(4315, -140, Rectangle{4875, -220, 915, 100}));
         mapObjects.push_back(std::make_shared<Ladder>(450, 485, Vector2{5785, -220}, Vector2{6570, -220}, Vector2{6570, -620}));
         mapObjects.push_back(std::make_shared<Platform>(4315, -140, Rectangle{6565, -620, 1610, 100}));
         mapObjects.push_back(std::make_shared<Ladder>(1970, 128, Vector2{8175, -620}, Vector2{8895, -620}, Vector2{8895, -970}));
