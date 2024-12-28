@@ -1,5 +1,7 @@
 #pragma once
+
 #include "raylib.h"
+
 #include "Platform.hpp"
 #include "Ladder.hpp"
 
@@ -16,7 +18,6 @@ public:
     Rectangle hitBox;
     Texture2D bullet = LoadTexture("resources/MainBullet.png");
     Rectangle textureRec = {0, 0, bulletSize, bulletSize};
-
 
     bool isActive = true;
     bool isHidden = false;
@@ -44,12 +45,10 @@ public:
         return false;
     }
 
-    Bullet(float startX, float startY, float speedX, float speedY,int damage) {
-        this->damage = damage;
+    Bullet(float startX, float startY, float speedX, float speedY,int damage) : damage(damage), isActive(true) {
         position = { startX, startY };
         velocity = { speedX, speedY };
         hitBox = { position.x, position.y, bulletSize, bulletSize}; // Размеры пули
-        isActive = true;
     }
 
     ~Bullet() {

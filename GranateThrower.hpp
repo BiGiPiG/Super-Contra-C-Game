@@ -1,6 +1,7 @@
 #pragma once
 
 #include "raylib.h"
+
 #include "Granate.hpp"
 #include "TurretBullet.hpp"
 #include "LedderBullet.hpp"
@@ -103,7 +104,7 @@ public:
 
     GranateThrower(float startX, float startY) {
         position = { startX, startY };
-        hitBox = { 25.0f + startX, startY + 28.0f, 50.0f, 100.0f }; // Размер хитбокса
+        hitBox = { 25.0f + startX, startY + 28.0f, 50.0f, 100.0f };
         textureRec = { 0, 0, 101.0f, 128.0f }; 
         granateThrower = LoadTexture("resources/GranateThrower.png");
     }
@@ -112,7 +113,6 @@ public:
         UnloadTexture(granateThrower);
     }
 
-    //бросить гранату
     void throwGranate(std::vector<BulletVariant> &bullets) {
         if (currentGranateCount < granateQueueCount) {
             bullets.push_back(std::make_shared<Granate>(position.x + 15, position.y, "resources/Granate.png"));
@@ -178,7 +178,6 @@ public:
         if (isDying) {
             return;
         }
-        
         if (!bullets.empty()) {
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
@@ -188,6 +187,6 @@ public:
                 }
             }
         }
-    }
 
+    }
 };

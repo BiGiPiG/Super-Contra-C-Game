@@ -1,7 +1,10 @@
 #pragma once
+
 #include "raylib.h"
+
 #include "Platform.hpp"
 #include "Ladder.hpp"
+
 #include <cmath>
    
 class TurretBullet {
@@ -51,7 +54,7 @@ public:
     TurretBullet(float startX, float startY) {
         position = { startX, startY };
 
-        hitBox = { position.x, position.y, bulletSize, bulletSize}; // Размеры пули
+        hitBox = { position.x, position.y, bulletSize, bulletSize};
         isActive = true;
     }
 
@@ -81,7 +84,7 @@ public:
         frameTimer += deltaTime;
         if (frameTimer >= frameSpeed) {
             currentFrameShoot = (currentFrameShoot + 1) % countFrame;
-            textureRec.x = currentFrameShoot * bulletSize; // Update texture rectangle for animation
+            textureRec.x = currentFrameShoot * bulletSize;
             frameTimer = 0.0f;
         }
         

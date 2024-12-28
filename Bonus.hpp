@@ -12,11 +12,10 @@ enum BonusType {TYPE_1, TYPE_2};
 class Bonus {
 private:
 
-    //текстуры
     Vector2 position; // Позиция бонуса
     Texture2D bonus; // Текстура бонуса
     Rectangle hitBox; // Хитбокс для столкновения
-    Vector2 velocity = {8.0f, 0.0f};
+    Vector2 velocity = {8.0f, 0.0f}; 
     Rectangle textureRec;
     BonusType type;
 
@@ -24,8 +23,6 @@ private:
     int countFrames = 7;
     float gravity = 0.5;
 
-
-    //движение
     bool isActive = false; // Флаг активности бонуса
     float amplitude = 100; // Амплитуда синусоиды
     float timeCounter = 0.0f;
@@ -42,7 +39,7 @@ private:
         isDying = true;
         velocity.x = 0;
         velocity.y = -jumpHeight; // Устанавливаем вертикальную скорость
-        isJumping = true;   // Устанавливаем флаг прыжка
+        isJumping = true;   // Устанавливаем флаг на true
     }
 
 public:
@@ -66,6 +63,14 @@ public:
         return type;
     }
 
+    bool getAlive() {
+        return isAlive;
+    }
+
+    Vector2 getPosition() const {
+        return position; // Возвращаем позицию бонуса
+    }
+
     void setAlive() {
         isAlive = false;
     }
@@ -73,7 +78,6 @@ public:
     int isOnGround(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
         for (auto obj: mapObjects) {
              if (auto platform = dynamic_cast<Platform*>(obj.get()))  {
-                
                 if (platform->isCollision(hitBox)) {
                     return platform->getRectangle().y;
                 }
@@ -86,9 +90,7 @@ public:
         for (auto obj: mapObjects) {
             if (auto ladder = dynamic_cast<Ladder*>(obj.get())) {
                 Vector2 hitBoxCenter = { hitBox.x + hitBox.width, hitBox.y + hitBox.height};
-                
                 if (ladder->isCollision(hitBoxCenter)) {
-                    //std::cout << "ladder" << std::endl;
                     return true;
                 }
             }
@@ -104,10 +106,7 @@ public:
                 textureRec.x = bonus.width / countFrames * currentFrame;
                 timeCounter = 0.0;
             }
-        } else {
-            textureRec.x = 0.0f;
         }
-        
     }
 
     void update(float deltaTime, std::vector<std::shared_ptr<MapObject>> &mapObjects) {
@@ -127,7 +126,6 @@ public:
             position.y += velocity.y; // Обновляем позицию по Y
             hitBox.y = position.y;
             if (isOnGround(mapObjects)) { // Проверка на приземление
-
                 position.y = isOnGround(mapObjects) - bonus.height; // Сброс позиции на землю
                 isJumping = false; // Завершение прыжка
                 velocity.y = 0.0f; // Сброс скорости прыжка
@@ -144,7 +142,7 @@ public:
     void draw() const {
         if (isActive) {
             DrawTextureRec(bonus, textureRec, position, WHITE);
-            //DrawRectangleRec(hitBox, GREEN); // Для отладки: отрисовка хитбокса
+            //DrawRectangleRec(hitBox, GREEN); // Jтрисовка хитбокса
         }
     }
 
@@ -158,26 +156,14 @@ public:
         }
     }
 
-    bool getAlive() {
-        return isAlive;
-    }
-
-    Vector2 getPosition() const {
-        return position; // Возвращаем позицию бонуса
-    }
-
     void checkDie(std::vector<std::shared_ptr<Bullet>> &bullets, int &score) {
-
         if (isDying) {
             return;
         }
-
         if (!bullets.empty()) {
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
                     score += 10000;
-                    std::cout << "----------------------------------------------------" << std::endl;
-                    std::cout << "die" << std::endl;
                     die();
                     return;
                 }

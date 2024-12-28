@@ -4,13 +4,17 @@
 
 class GameOverMenu {
 private:
+
     int countFrames = 2;
     int currentFrame = 0;
     int hiScore;
     int curScore;
+
     Texture2D gameOverMenu;
     Music music;
     Rectangle textureRec = {0, 0, 900, 700};
+
+    float musicTime = 6.5f;
 
 public:
     GameOverMenu(int hiScore, int curScore) : hiScore(hiScore), curScore(curScore) {}
@@ -20,12 +24,12 @@ public:
     }
 
     void updateScore(int hiScore, int curScore) {
-        
         this->hiScore = hiScore;
         this->curScore = curScore;
     }
 
     int show() {
+
         gameOverMenu = LoadTexture("resources/GameOverMenu.png");
         Font font = LoadFontEx("resources/Font.ttf", 20, NULL, 0);
 
@@ -33,10 +37,10 @@ public:
         PlayMusicStream(music); // Воспроизведение музыки
 
         while (true) {
-            if (GetMusicTimePlayed(music) >= 6.5f) {
-                StopMusicStream(music); // Stop the music when it finishes
+            if (GetMusicTimePlayed(music) >= musicTime) {
+                StopMusicStream(music); 
             } else {
-                UpdateMusicStream(music); // Always update the music stream
+                UpdateMusicStream(music); 
             }
 
             BeginDrawing();

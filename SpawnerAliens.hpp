@@ -1,5 +1,9 @@
 #pragma once
+
+#include "raylib.h"
+
 #include "Alien.hpp"
+
 #include <vector>
 #include <memory>
 #include <iostream>
@@ -33,7 +37,6 @@ public:
         
 
         bool isInSpawnRange = player.getPosition().x >= spawnX - 500 && player.getPosition().x <= spawnX + 500;
-        //std::cout << isInSpawnRange << std::endl;
 
         if (timeBetween) {
             queueElapsedTime += deltaTime; // Увеличиваем время с последнего спавна очереди
@@ -51,7 +54,7 @@ public:
                 if (countSpawnAliens < aliensPerSpawn) {
                     countSpawnAliens++;
                     bool flag = player.getPosition().x >= spawnX; // Определение направления инопланетян
-                    aliens.push_back(std::make_shared<Alien>(spawnX, spawnY, flag)); // Спавн нескольких инопланетян
+                    aliens.push_back(std::make_shared<Alien>(spawnX, spawnY, flag)); // Спавн инопланетян
                     timeBetween = false;
                 } else {
                     timeBetween = true;

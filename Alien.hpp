@@ -1,10 +1,13 @@
 #pragma once
+
 #include "raylib.h"
+
 #include <vector>
 #include <cmath>
 
 class Alien {
 private:
+
     int currentRunFrame = 0;
     int countAnimations = 2;
     int countFrameRun = 6;
@@ -14,9 +17,10 @@ private:
     Rectangle hitBox; // Хитбокс для коллизий
     Rectangle textureRec;
     Texture2D alienTexture; // Текстура инопланетянина
-    Vector2 velocity = {6.0f, 0}; // Объединенная скорость (x, y)
+    Vector2 velocity = {6.0f, 0}; // Вектор скорости
+
     float gravity = 0.5f; // Гравитация
-    float yShift = 38.0f;
+    float yShift = 38.0f; // Смещение хит бокса относительно позиции текстуры
 
     bool changeFrame = false;
     bool isHidden = false;
@@ -63,7 +67,7 @@ public:
 
     void draw() {
         DrawTextureRec(alienTexture, textureRec, position, WHITE);
-        //DrawRectangleRec(hitBox, GREEN);
+        //DrawRectangleRec(hitBox, GREEN); // отрисовка хитбокса
     }
 
     int isOnGround(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
@@ -109,15 +113,20 @@ public:
             position.x -= velocity.x;
             hitBox.x = 25 + position.x;
             position.y += 3.12; // Смещение по Y при нахождении на лестнице
-            hitBox.y = yShift + position.y; // Обновляем хитбокс
+            hitBox.y = yShift + position.y; 
+
         } else if (isJumping) {
+
             position.x -= velocity.x;
             hitBox.x = 25 + position.x;
             position.y += gravity;
             hitBox.y = yShift + position.y;
+
         } else {
+
             position.y += gravity;
             hitBox.y = yShift + position.y;
+
         }
 
         if (textureRec.width > 0) {
@@ -126,14 +135,20 @@ public:
     }
 
     void runRight(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
+
         if (isOnGround(mapObjects) && !isOnLadder(mapObjects)) {
+
             position.x += velocity.x;
             hitBox.x = 25 + position.x;
             
             if (isOnGround(mapObjects)) {
+
                 position.y = isOnGround(mapObjects) - alienTexture.height / countAnimations;
+
             } else {
+
                 isJumping = true;
+
             }
         
             hitBox.y = yShift + position.y;
@@ -141,15 +156,15 @@ public:
         } else if (isOnLadder(mapObjects)) {
 
             position.x += velocity.x;
+            position.y -= 3.12; 
             hitBox.x = 25 + position.x;
-            position.y -= 3.12; // Смещение по Y при нахождении на лестнице
             hitBox.y = yShift + position.y; // Обновляем хитбокс
 
         } else if (isJumping) {
 
             position.x += velocity.x;
-            hitBox.x = 25 + position.x;
             position.y += gravity;
+            hitBox.x = 25 + position.x;
             hitBox.y = yShift + position.y;
 
         } else {
@@ -180,19 +195,15 @@ public:
             hitBox.y = yShift + position.y;
 
             if (isOnGround(mapObjects)) { // Проверка на приземление
-
                 position.y = isOnGround(mapObjects) - alienTexture.height / countAnimations; // Сброс позиции на землю
                 isJumping = false; // Завершение прыжка
                 velocity.y = 0.0f; // Сброс скорости прыжка
                 hitBox.y = yShift + position.y;
-
             } else if (isOnLadder(mapObjects)) {
-
-                position.y -= 2.5; // Поднимаем немного выше, чтобы он не проваливался сквозь лестницу
+                position.y -= 2.5; // Поднимаем немного выше, чтобы не проваливался сквозь лестницу
                 hitBox.y = yShift + position.y; // Обновляем хитбокс
                 isJumping = false; 
                 velocity.y = 0.0f;
-
             } 
         } else if (!isOnGround(mapObjects)) {
 
@@ -203,16 +214,12 @@ public:
             }
 
             if (isOnGround(mapObjects)) { 
-
                 position.y = isOnGround(mapObjects) - alienTexture.height / countAnimations;
                 isJumping = false; 
                 velocity.y = 0.0f;
-
             } else if (isOnLadder(mapObjects)) {
-
                 isJumping = false; 
                 velocity.y = 0.0f;
-
             } 
         } else {
             position.y = isOnGround(mapObjects) - alienTexture.height / countAnimations;
@@ -243,7 +250,8 @@ public:
         }
     }
 
-    void checkAlien(std::vector<std::shared_ptr<MapObject>> &mapObjects, Vector2 &playerPos, std::shared_ptr<Bullet> bullet, int &score) {
+    void checkAlien(std::vector<std::shared_ptr<MapObject>> &mapObjects, Vector2 &playerPos, 
+                    std::shared_ptr<Bullet> bullet, int &score) {
 
         if (isHidden) {
             return;
@@ -252,13 +260,12 @@ public:
         if (position.x < 0 || abs(position.x - playerPos.x) >= 1000.0f) {
             isActive = false;
         }
+
         if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
             bullet->isHidden = true;
             isHidden = true;
             velocity = {0, 0};
             score += 500;
         }
-        
     }
-
 };

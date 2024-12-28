@@ -63,13 +63,14 @@ private:
 
                 if (currentFrame >= deathFrames) { 
                     currentFrame = deathFrames - 1; // Останавливаемся на последнем кадре анимации смерти
-                    isAlive = false; // Устанавливаем флаг мертвого состояния после достижения определенной высоты
+                    isAlive = false; // Устанавливаем флаг мертвого состояния
                 }
                 
                 textureRec.x = ledder.width / deathFrames * currentFrame;
 
             }
         } else { 
+
             position.y -= liftSpeed; // Поднимаем метателя вверх при смерти
             
             if (liftTimer >= liftTime) { 
@@ -100,7 +101,7 @@ public:
 
     Ledder(float x, float y) {
         position = Vector2 {x, y};
-        hitBox = { 25.0f + x, y + 28.0f, 50.0f, 100.0f }; // Размер хитбокса
+        hitBox = { 25.0f + x, y + 28.0f, 50.0f, 100.0f };
         textureRec = { 0, 0, 101.0f, 128.0f }; 
         ledder = LoadTexture("resources/Ledder.png");
     }
@@ -112,39 +113,35 @@ public:
         bullets.push_back(std::make_shared<LedderBullet>(bulletPosX, bulletPosY, target.x + 45, target.y + 60, lookRight));
     }
 
-    void update(Vector2 target, std::vector<std::shared_ptr<MapObject>> &mapObjects, 
-            float deltaTime, std::vector<BulletVariant> &bullets) {
+    void update(Vector2 target, float deltaTime, std::vector<BulletVariant> &bullets) {
     
         if (isDying) {
-            // Update death animation if the shooter is dead
             updateDeathAnimation(deltaTime);
-            return; // Stop execution if the shooter is dead
+            return;
         }
 
-        shotTimer += deltaTime; // Increment shot timer
+        shotTimer += deltaTime;
 
-        // Flip texture based on direction
+        //поворот стрелка
         if ((textureRec.width < 0 && target.x > position.x) || 
             (textureRec.width > 0 && target.x <= position.x)) {
-            textureRec.width = -textureRec.width; // Flip texture
-            std::swap(lookLeft, lookRight); // Swap look directions
+            textureRec.width = -textureRec.width; 
+            std::swap(lookLeft, lookRight);
         }
 
-        // Handle shooting logic
         if (currentShotCount < shotQueueCount) {
             if (shotTimer >= shotInterval) {
-                shoot(target, bullets); // Execute shooting
-                shotTimer = 0.0f; // Reset shot timer
-                currentShotCount++; // Increment shot count
+                shoot(target, bullets);
+                shotTimer = 0.0f; 
+                currentShotCount++; 
             }
         } else {
-            queueTimer += deltaTime; // Increment queue timer for reloading
+            queueTimer += deltaTime;
         }
-        
-        // Reset shooting after queue interval
+
         if (queueTimer >= queueInterval) {
-            resetShooting(); // Reset shooting state
-            queueTimer = 0.0f; // Reset queue timer for next cycle
+            resetShooting();
+            queueTimer = 0.0f;
         }
 
     }

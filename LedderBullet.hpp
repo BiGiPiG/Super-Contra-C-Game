@@ -1,7 +1,10 @@
 #pragma once
+
 #include "raylib.h"
+
 #include "Platform.hpp"
 #include "Ladder.hpp"
+
 #include <cmath>
 
 class LedderBullet {
@@ -51,22 +54,19 @@ public:
     LedderBullet(float startX, float startY, float targetX, float targetY, bool flag) {
         position = { startX, startY };
 
-        // Calculate direction vector from start to target
         float dirX = abs(targetX - startX);
         float dirY = abs(targetY - startY);
 
-        // Calculate distance
         float distance = sqrt(dirX * dirX + dirY * dirY);
 
-        // Normalize the direction vector and scale by desired speed (e.g., 20.0f)
-        if (distance != 0) { // Prevent division by zero
+        if (distance != 0) {
             velocity = { (flag ? 1.0f : -1.0f) * (dirX / distance) * 5,
                           (dirY / distance) * 5 };
         } else {
-            velocity = { 0.0f, 0.0f }; // If no distance, set velocity to zero
+            velocity = { 0.0f, 0.0f };
         }
 
-        hitBox = { position.x, position.y, bulletSize, bulletSize}; // Размеры пули
+        hitBox = { position.x, position.y, bulletSize, bulletSize};
         isActive = true;
     }
 
@@ -95,7 +95,7 @@ public:
         frameTimer += deltaTime;
         if (frameTimer >= frameSpeed) {
             currentFrameShoot = (currentFrameShoot + 1) % countFrame;
-            textureRec.x = currentFrameShoot * bulletSize; // Update texture rectangle for animation
+            textureRec.x = currentFrameShoot * bulletSize;
             frameTimer = 0.0f;
         }
         

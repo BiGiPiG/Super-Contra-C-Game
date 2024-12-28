@@ -39,7 +39,7 @@ public:
 
     HeliGun(Vector2 startPosition, Vector2 offset) 
         : position(startPosition), offset(offset) {
-        heliGun = LoadTexture("resources/HeliGun.png"); // Загрузка текстуры вертолета
+        heliGun = LoadTexture("resources/HeliGun.png"); // Загрузка текстуры 
         textureRec = { 0, 0, (float)heliGun.width, (float)heliGun.height }; // Инициализация рамки текстуры
         hitBox = { startPosition.x, startPosition.y, (float)heliGun.width, (float)heliGun.height };
     }
@@ -49,7 +49,6 @@ public:
     }
 
     void updateAnimation(Vector2 &playerPos) {
-
         if ((textureRec.width < 0 && playerPos.x > position.x) || 
             (textureRec.width > 0 && playerPos.x <= position.x)) {
             textureRec.width = -textureRec.width; // Flip texture
@@ -73,7 +72,6 @@ public:
         if (isExplosion) {
             return;
         }
-
         if (!bullets.empty()) {
             for (const auto &bullet : bullets) {
                 if (CheckCollisionRecs(hitBox, bullet->hitBox)) {
@@ -86,6 +84,7 @@ public:
                 }
             }
         }
+
     }
 
     void shoot(Vector2 target, std::vector<BulletVariant> &bullets) {
@@ -93,6 +92,5 @@ public:
         float bulletPosY = position.y + 40;
         bullets.push_back(std::make_shared<LedderBullet>(bulletPosX, bulletPosY, target.x + 45, target.y + 60, lookRight));
     }
-
 
 };

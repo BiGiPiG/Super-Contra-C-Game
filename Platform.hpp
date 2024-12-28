@@ -1,5 +1,7 @@
 #pragma once
+
 #include "raylib.h"
+
 #include "MapObject.hpp"
 
 class Platform : public MapObject {

@@ -1,11 +1,15 @@
 #pragma once
+
+#include "raylib.h"
+
+
+#include "Platform.hpp"
+#include "Ladder.hpp"
+
+#include <memory>
 #include <vector>
 #include <string>
 #include <iostream>
-#include "Platform.hpp"
-#include "Ladder.hpp"
-#include "raylib.h"
-#include <memory>
 
 class Map {
 private:
@@ -17,13 +21,10 @@ public:
     Map() {};
 
     void initialization(const std::string& path) {
+
         this->background = LoadTexture(path.c_str());
 
-        if (background.id == 0) { // Проверка на успешную загрузку текстуры
-            std::cerr << "Failed to load texture from: " << path << std::endl;
-            background = {}; // Инициализация текстуры по умолчанию в случае ошибки
-        }
-
+        //создание карты
         mapObjects.push_back(std::make_shared<Platform>(0, 540, Rectangle{0, 540, 2595, 100}));
         mapObjects.push_back(std::make_shared<Ladder>(450, 485, Vector2{2595, 540}, Vector2{3385, 540}, Vector2{3385, 130}));
         mapObjects.push_back(std::make_shared<Platform>(4315, -140, Rectangle{3375, 130, 810, 100}));

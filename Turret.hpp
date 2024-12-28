@@ -30,7 +30,7 @@ private:
     float explosionElapsedTime = 0.0f; // Прошедшее время для анимации взрыва
 
     bool isActive = false;
-    bool isAppearing = false; // Активна ли анимация появления
+    bool isAppearing = false;
     bool isExplosion = false;
     bool isDie = false;
 
@@ -66,10 +66,10 @@ public:
                 std::vector<std::shared_ptr<MapObject>> mapObjects, std::vector<BulletVariant> &bullets) {
         if (isActive && !isAppearing && !isExplosion) {
 
-            elapsedTime += deltaTime; // Увеличиваем прошедшее время
+            elapsedTime += deltaTime;
 
             if (elapsedTime >= fireRate) {
-                shoot(bullets); // Стреляем
+                shoot(bullets);
                 std::cout<< bullets.size();
                 elapsedTime = 0; // Сбрасываем таймер
             }
@@ -117,7 +117,7 @@ public:
 
     void draw() const {
         if (isActive || isAppearing) {
-            DrawTextureRec(turretTexture, textureRec, position, WHITE); // Рисуем турель
+            DrawTextureRec(turretTexture, textureRec, position, WHITE);
         }
     }
 
@@ -146,7 +146,7 @@ public:
 
 private:
     bool isPlayerInRange(Player& player) const {
-        // Проверяем, находится ли игрок в пределах досягаемости турели (например, в пределах 300 пикселей)
+        // Проверяем, находится ли игрок в пределах досягаемости турели
         return (player.getPosition().x > position.x - 500 && player.getPosition().x < position.x + 500);
     }
 
@@ -162,6 +162,4 @@ private:
         hitBox.width = turretTexture.width / 4;
         hitBox.height = turretTexture.height;
     }
-
-    
 };

@@ -27,8 +27,8 @@ public:
 
     HeliTarget(Vector2 startPosition, Vector2 offset) 
         : position(startPosition), offset(offset) {
-        heliTarget = LoadTexture("resources/HeliTarget.png"); // Загрузка текстуры вертолета
-        textureRec = { 0, 0, (float)heliTarget.width / countFrames, (float)heliTarget.height }; // Инициализация рамки текстуры
+        heliTarget = LoadTexture("resources/HeliTarget.png"); // Загрузка текстуры 
+        textureRec = { 0, 0, (float)heliTarget.width / countFrames, (float)heliTarget.height }; 
         hitBox = { startPosition.x, startPosition.y, (float)heliTarget.width, (float)heliTarget.height };
     }
 

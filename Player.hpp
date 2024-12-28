@@ -1,6 +1,8 @@
 #pragma once
+
 #include "raylib.h"
 #include "raymath.h"
+
 #include "Bullet.hpp"
 #include "Alien.hpp"
 #include "LedderBullet.hpp"
@@ -12,7 +14,10 @@
 
 using BulletVariant = std::variant<std::shared_ptr<LedderBullet>, std::shared_ptr<TurretBullet>, std::shared_ptr<Granate>>;
 
-enum TypeOfShooting { SHOOTTYPE_1, SHOOTTYPE_2 };
+enum TypeOfShooting { 
+    SHOOTTYPE_1, 
+    SHOOTTYPE_2 
+};
 
 class Player {
 private:
@@ -43,7 +48,7 @@ private:
 
     float gravity = 0.5;
     float jumpHeight = 14;
-    float bulletSpeed = 20.0f; // Скорость пулиg
+    float bulletSpeed = 20.0f;
     float frameTimer = 0.0f;
     float frameSpeed = 0.2f;
 
@@ -84,10 +89,10 @@ private:
             frameTimer = 0.0f;
 
             if (currentDieFrame < deathFrames) {
-                position.x -= 10; // Сдвиг позиции
-                position.y -= 10; // Сдвиг позиции
+                position.x -= 10;
+                position.y -= 10;
                 textureRec.x = (float)playerTexture.width / countFrameRun * currentDieFrame;
-                textureRec.y = (float)playerTexture.height / countAnimations * 5; // Кадр смерти
+                textureRec.y = (float)playerTexture.height / countAnimations * 5;
             } else {
                 isDying = false; // Завершаем анимацию смерти
                 isBlinking = true; // Начинаем мигание
@@ -101,14 +106,14 @@ private:
         hitBox.width = 50.0f;
         hitBox.height = 100.0f;
 
-        currentFrame %= countFrameJump; // Обновляем кадр
+        currentFrame %= countFrameJump; 
         textureRec.x = (float)playerTexture.width / countFrames * currentFrame;
-        textureRec.y = (float)playerTexture.height / countAnimations * 2; // Кадр прыжка
+        textureRec.y = (float)playerTexture.height / countAnimations * 2;
     }
 
     void updateMovementAnimation() {
 
-        currentFrame %= countRunFrames; // Обновляем кадр
+        currentFrame %= countRunFrames;
         hitBox.width = 50.0f;
         hitBox.height = 100.0f;
 
@@ -135,14 +140,14 @@ private:
         hitBox.height = 100.0f;
 
         if (lookUp) {
-            textureRec.x = (float)playerTexture.width / countFrames * 2; // Кадр ожидания
+            textureRec.x = (float)playerTexture.width / countFrames * 2; // игрок смотрит наверх
             textureRec.y = (float)playerTexture.height / countAnimations * 6;
         } else if (lookDown) {
             hitBox.y = position.y + 100;
             hitBox.x = position.x;
             hitBox.width = 100.0f;
             hitBox.height = 38.0f;
-            textureRec.x = (float)playerTexture.width / countFrames * 4; // Кадр ожидания
+            textureRec.x = (float)playerTexture.width / countFrames * 4; // игрок смотрит вниз
             textureRec.y = (float)playerTexture.height / countAnimations * 6;
         } else {
             textureRec.x = 0; // Кадр ожидания
@@ -178,7 +183,7 @@ public:
         position.y = startY;
         hitBox = { 25.0f + startX, 38.0f + startY, 50.0f, 100.0f }; 
         textureRec = { 0, 0, 100.0f, 138.0f };
-        playerTexture = LoadTexture(texturePath); // Загрузка текстуры игрока
+        playerTexture = LoadTexture(texturePath);
         lifeIcon = LoadTexture("resources/life_icon.png");
     }
 
@@ -279,7 +284,7 @@ public:
             position.x -= velocity.x;
             hitBox.x = 25 + position.x;
             position.y += 2.6; // Смещение по Y при нахождении на лестнице
-            hitBox.y = 38.0f + position.y; // Обновляем хитбокс
+            hitBox.y = 38.0f + position.y;
         } else if (isJumping) {
             position.x -= velocity.x;
             hitBox.x = 25 + position.x;
@@ -328,7 +333,7 @@ public:
             position.x += velocity.x;
             hitBox.x = 25 + position.x;
             position.y -= 2.6; // Смещение по Y при нахождении на лестнице
-            hitBox.y = 38.0f + position.y; // Обновляем хитбокс
+            hitBox.y = 38.0f + position.y;
 
         } else if (isJumping) {
 
@@ -367,7 +372,7 @@ public:
     }
 
     void updateAnimation(float deltaTime) {
-        frameTimer += deltaTime; // Увеличиваем таймер
+        frameTimer += deltaTime;
 
         if (isBlinking) {
             updateBlinking(deltaTime);
@@ -431,8 +436,6 @@ public:
 
     void updatePhysics(std::vector<std::shared_ptr<MapObject>> &mapObjects) {
 
-        //std::cout << velocity.y << " " << position.y << std::endl;
-
         if (isJumping) {
 
             velocity.y += gravity; // Применяем гравитацию к вертикальной скорости
@@ -455,19 +458,15 @@ public:
             }
         } else if (!isOnGround(mapObjects)) {
             if (!isOnLadder(mapObjects)) {
-                //std::cout << "falling" << std::endl;
                 velocity.y += gravity; // Если не на земле, применяем гравитацию
                 position.y += velocity.y;
-                //std::cout << velocity.y << " " << position.y << std::endl;
                 hitBox.y = 38.0f + position.y;
             }
 
             if (isOnGround(mapObjects)) { 
-                //std::cout << "Notfalling" << std::endl;
                 position.y = isOnGround(mapObjects) - playerTexture.height / countAnimations;
                 isJumping = false; 
                 velocity.y = 0.0f;
-                //std::cout << velocity.y << " " << position.y << std::endl;
             } else if (isOnLadder(mapObjects)) {
                 isJumping = false; 
                 velocity.y = 0.0f;
@@ -477,7 +476,7 @@ public:
             velocity.y = 0.0f; // Если игрок на земле, сбрасываем вертикальную скорость
         }
         
-        hitBox.x = position.x + 25; // Обновление хитбокса по X
+        hitBox.x = position.x + 25;
     }
 
     void draw(Vector2 &pos) const {
@@ -486,10 +485,10 @@ public:
             Color color = (currentBlink % 2 == 0) ? WHITE : (Color){255, 255, 255, 0}; // Прозрачность на четных кадрах
             
             DrawTextureRec(playerTexture, textureRec, position, color); // Отрисовка с учетом прозрачности
-            DrawRectangleRec(hitBox, GREEN);
+            //DrawRectangleRec(hitBox, GREEN);
         } else {
             DrawTextureRec(playerTexture, textureRec, position, WHITE); // Обычная отрисовка
-            DrawRectangleRec(hitBox, GREEN);
+            //DrawRectangleRec(hitBox, GREEN);
         }
         drawBullets();
         drawLives(pos);
@@ -527,24 +526,23 @@ public:
                 bulletPosY = position.y + 55;
             }
         } else {
-            if (lookUp) {
+            if (lookUp) { // стрельба вверх
                 bulletDirectionX = 0;
                 bulletDirectionY = -bulletSpeed;
                 bulletPosX = rightRun ? position.x + 40 : position.x + 30;
                 bulletPosY = position.y;
-            } else if (lookDown) {
+            } else if (lookDown) { //стрельба вниз
                 bulletDirectionX = rightRun ? bulletSpeed : -bulletSpeed;
                 bulletDirectionY = 0;
                 bulletPosX = rightRun ? position.x + 75 : position.x;
                 bulletPosY = position.y + 95;
-            } else {
+            } else { //стрельба вперед
                 bulletDirectionX = rightRun ? bulletSpeed : -bulletSpeed;
                 bulletDirectionY = 0;
                 bulletPosX = rightRun ? position.x + 60 : position.x + 10;
                 bulletPosY = position.y + 55;
             }
         }
-        //float bulletDirectionY = lookUp ? -bulletSpeed : lookDown ? bulletSpeed : 0;
         if (typeOfShooting == SHOOTTYPE_1) {
             bullets.push_back(std::make_shared<Bullet>(bulletPosX, bulletPosY, bulletDirectionX, bulletDirectionY, 1));
         } else {
@@ -575,8 +573,8 @@ public:
     }
 
     void update(std::vector<std::shared_ptr<MapObject>>& mapObjects) {
-        updatePhysics(mapObjects); // Обновляем физику (включая прыжки)
-        updateBullets(mapObjects); // Обновляем состояние пуль
+        updatePhysics(mapObjects); // Обновляем физику 
+        updateBullets(mapObjects); // Обновляем пули
     }   
 
     void isPlayerAlive(std::vector<std::shared_ptr<Alien>>  &aliens, 

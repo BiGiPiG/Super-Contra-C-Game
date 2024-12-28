@@ -31,19 +31,16 @@ private:
     float frameTimer = 0.0f;
     float frameSpeed = 0.05f;
 
-    //стрельба
     float shotTimer = 0.0f;
     float timeBetweenShots = 2.0f;
     int currentGunIndex = -1;
 
-    //спавн врагов
     float spawnTimer = 0.0;
     float timeBetweenSpawn = 2.0f;
 
-
-
     void shoot(Vector2 target, std::vector<BulletVariant> &bullets) {
-        shotTimer += GetFrameTime(); // Увеличиваем таймер
+
+        shotTimer += GetFrameTime();
 
         if (shotTimer >= timeBetweenShots) {
 
@@ -101,7 +98,7 @@ public:
 
         if (isDying && position.y >= startPos.y + 200) {
             isActive = false;
-}
+        }
 
         if (position.x < startPos.x + positionDelta && 
             position.x >= startPos.x) {
@@ -146,20 +143,17 @@ public:
         if (!guns.empty()) {
             for (auto it = guns.begin(); it != guns.end();) {
                 (*it) -> checkDie(player.getBullets());
-                if ((*it) -> isGunActive()) { // Проверка на nullpt
-
+                if ((*it) -> isGunActive()) {
                     if (position.x < startPos.x + positionDelta && 
                         position.x >= startPos.x) {
                         (*it)->updatePos(position);
                     }
-                    
                     (*it)->updateAnimation(player.getPosition()); // Обновление анимации каждого оружия
                     ++it;
                 } else {
                     guns.erase(it);
                 }
             }
-
             shoot(player.getPosition(), bullets);
         } else if (isStage1) {
             stage2();
@@ -179,6 +173,4 @@ public:
             heliTarget->draw(); // Отрисовка цели если она активна
         }
     }
-
-
 };

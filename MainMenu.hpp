@@ -5,12 +5,12 @@ class MainMenu {
 private:
     int countFrames = 2;
     int currentFrame = 0;
+    float musicTime = 5.5f;
     Texture2D mainMenu;
     Rectangle textureRec = {0, 0, 900, 700};
 
 public:
     MainMenu() {
-        // Конструктор может быть использован для инициализации переменных, если необходимо
         mainMenu = LoadTexture("resources/MainMenu.png");
     }
 
@@ -25,10 +25,10 @@ public:
         PlayMusicStream(music); // Воспроизведение музыки
 
         while (!WindowShouldClose()) {
-            if (GetMusicTimePlayed(music) >= 5.5f) {
-                StopMusicStream(music); // Stop the music when it finishes
+            if (GetMusicTimePlayed(music) >= musicTime) {
+                StopMusicStream(music); 
             } else {
-                UpdateMusicStream(music); // Always update the music stream
+                UpdateMusicStream(music);
             }
 
 
