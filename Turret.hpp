@@ -70,7 +70,6 @@ public:
 
             if (elapsedTime >= fireRate) {
                 shoot(bullets);
-                std::cout<< bullets.size();
                 elapsedTime = 0; // Сбрасываем таймер
             }
 
@@ -88,7 +87,6 @@ public:
                     isAppearing = false;
                     textureRec.x = 114.0f;
                 }
-                std::cout << currentAppearanceFrame << std::endl;
                 
             }
         } else if (isExplosion) {

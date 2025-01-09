@@ -627,7 +627,6 @@ public:
 
         for (auto &bonus : bonuses) {
             if (CheckCollisionRecs(hitBox, (*bonus).getHitBox())) {
-                std::cout << "bonus" << std::endl;
                 if ((*bonus).getType() == TYPE_1) {
                     countLives++;
                 } else {
