@@ -48,7 +48,7 @@ public:
 
     void updateAliens(Player& bill) {
         if (!aliens.empty()) {
-            for (const auto &alien : aliens) {
+            for (const auto &alien : aliens) {  
                 if (alien->isLookRight()) {
                     alien->runRight(map.getPlatforms());
                 } else {
